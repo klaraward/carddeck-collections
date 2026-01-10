@@ -4,226 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nervsystemreglering - Kortlek</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
-        }
-
-        h1 {
-            color: white;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-        }
-
-        .subtitle {
-            color: rgba(255,255,255,0.9);
-            margin-bottom: 30px;
-            font-size: 1.1rem;
-        }
-
-        .card-area {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            flex: 1;
-            position: relative;
-            width: 100%;
-            max-width: 320px;
-        }
-
-        .deck {
-            position: absolute;
-            bottom: -60px;
-            width: 100px;
-            height: 140px;
-            cursor: pointer;
-            perspective: 1000px;
-            z-index: 1;
-        }
-
-        .deck-card {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(145deg, #2c3e50, #1a252f);
-            border-radius: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            transition: transform 0.2s, box-shadow 0.2s;
-            border: 3px solid #4a6fa5;
-        }
-
-        .deck-card::before {
-            content: '';
-            position: absolute;
-            inset: 10px;
-            border: 2px solid rgba(255,255,255,0.1);
-            border-radius: 10px;
-        }
-
-        .deck-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
-        }
-
-        .deck-icon {
-            font-size: 2rem;
-        }
-
-        .deck-card:nth-child(1) { top: 0; left: 0; }
-        .deck-card:nth-child(2) { top: 2px; left: 2px; }
-        .deck-card:nth-child(3) { top: 4px; left: 4px; }
-
-        .drawn-card {
-            width: 100%;
-            max-width: 300px;
-            min-height: 340px;
-            z-index: 10;
-            background: linear-gradient(145deg, #ffffff, #f0f0f0);
-            border-radius: 20px;
-            padding: 25px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            animation: cardAppear 0.5s ease-out;
-        }
-
-        @keyframes cardAppear {
-            from {
-                opacity: 0;
-                transform: translateY(-50px) rotateX(20deg);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0) rotateX(0);
-            }
-        }
-
-        .card-category {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            color: #666;
-            margin-bottom: 10px;
-        }
-
-        .card-icon {
-            font-size: 3.5rem;
-            margin-bottom: 15px;
-        }
-
-        .card-title {
-            font-size: 1.4rem;
-            color: #2c3e50;
-            margin-bottom: 15px;
-            font-weight: 600;
-        }
-
-        .card-description {
-            font-size: 1rem;
-            color: #555;
-            line-height: 1.6;
-            flex-grow: 1;
-        }
-
-        .card-tip {
-            margin-top: 15px;
-            padding: 12px;
-            background: rgba(102, 126, 234, 0.1);
-            border-radius: 10px;
-            font-size: 0.9rem;
-            color: #667eea;
-            font-style: italic;
-        }
-
-        .draw-btn {
-            margin-top: 20px;
-            padding: 15px 40px;
-            font-size: 1.1rem;
-            background: linear-gradient(145deg, #667eea, #764ba2);
-            color: white;
-            border: none;
-            border-radius: 30px;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-        }
-
-        .draw-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-        }
-
-        .cards-remaining {
-            color: rgba(255,255,255,0.8);
-            font-size: 0.85rem;
-            position: absolute;
-            bottom: 90px;
-        }
-
-        .shuffle-btn {
-            position: absolute;
-            bottom: 10px;
-            right: 10px;
-            padding: 8px 16px;
-            font-size: 0.8rem;
-            background: rgba(0,0,0,0.3);
-            color: white;
-            border: none;
-            border-radius: 15px;
-            cursor: pointer;
-            transition: all 0.2s;
-            z-index: 2;
-        }
-
-        .shuffle-btn:hover {
-            background: rgba(0,0,0,0.5);
-        }
-
-        .placeholder {
-            width: 100%;
-            max-width: 300px;
-            min-height: 340px;
-            border: 3px dashed rgba(255,255,255,0.3);
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: rgba(255,255,255,0.6);
-            font-size: 1rem;
-            text-align: center;
-            padding: 20px;
-        }
-
-        #card-display {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            padding-bottom: 100px;
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <h1>Nervsystemreglering</h1>
     <p class="subtitle">Dra ett kort for vägledning och lugn</p>
+
+    <div class="collection-selector" id="collection-selector">
+        <!-- Populated by JavaScript -->
+    </div>
 
     <div class="card-area">
         <div id="card-display">
@@ -232,72 +21,64 @@
 
         <p class="cards-remaining" id="remaining"></p>
 
-        <div class="deck" onclick="drawCard()">
-            <div class="deck-card"></div>
-            <div class="deck-card"></div>
-            <div class="deck-card">
+        <div class="deck">
+            <div class="deck-buttons">
+                <button class="deck-mode-btn" onclick="drawRandomCard()" title="Dra slumpat kort">
+                    🔀
+                </button>
+                <button class="deck-mode-btn" onclick="drawNextCard()" title="Dra nästa kort">
+                    📋
+                </button>
+            </div>
+            <div class="deck-card" onclick="drawCard()"></div>
+            <div class="deck-card" onclick="drawCard()"></div>
+            <div class="deck-card" onclick="drawCard()">
                 <span class="deck-icon">🧠</span>
             </div>
         </div>
 
-        <button class="shuffle-btn" onclick="shuffleDeck()">🔄 Blanda</button>
+        <button class="shuffle-btn" onclick="shuffleDeck()">🔄 Börja om</button>
+    </div>
+
+    <!-- Modal for creating/editing collections -->
+    <div class="modal-overlay" id="create-modal">
+        <div class="modal">
+            <h3 id="modal-title">Ny samling</h3>
+            <input type="text" id="collection-name-input" placeholder="Namn på samlingen">
+            <div class="modal-buttons">
+                <button class="modal-btn secondary" onclick="closeModal()">Avbryt</button>
+                <button class="modal-btn primary" onclick="saveCollection()">Spara</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for confirming deletion -->
+    <div class="modal-overlay" id="delete-modal">
+        <div class="modal">
+            <h3>Ta bort samling</h3>
+            <p style="color: #666; margin-bottom: 15px;">Är du säker på att du vill ta bort "<span id="delete-collection-name"></span>"?</p>
+            <div class="modal-buttons">
+                <button class="modal-btn secondary" onclick="closeDeleteModal()">Avbryt</button>
+                <button class="modal-btn danger" onclick="confirmDeleteCollection()">Ta bort</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for managing a collection -->
+    <div class="modal-overlay" id="manage-modal">
+        <div class="modal">
+            <h3 id="manage-modal-title">Hantera samling</h3>
+            <div class="modal-buttons" style="flex-direction: column; align-items: stretch;">
+                <button class="modal-btn secondary" onclick="editCollectionName()" style="text-align: left;">Byt namn</button>
+                <button class="modal-btn danger" onclick="showDeleteModal()" style="text-align: left;">Ta bort samling</button>
+            </div>
+            <div class="collection-actions">
+                <button class="modal-btn secondary" onclick="closeManageModal()" style="width: 100%;">Stäng</button>
+            </div>
+        </div>
     </div>
 
     <script src="cards.js"></script>
-    <script>
-        let availableCards = [...cards];
-        let currentCard = null;
-
-        function shuffleArray(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-            return array;
-        }
-
-        function shuffleDeck() {
-            availableCards = shuffleArray([...cards]);
-            currentCard = null;
-            updateDisplay();
-            updateRemaining();
-        }
-
-        function drawCard() {
-            if (availableCards.length === 0) {
-                shuffleDeck();
-            }
-
-            currentCard = availableCards.pop();
-            updateDisplay();
-            updateRemaining();
-        }
-
-        function updateDisplay() {
-            const display = document.getElementById('card-display');
-
-            if (currentCard) {
-                display.innerHTML = `
-                    <div class="drawn-card">
-                        <span class="card-category">${currentCard.category}</span>
-                        <span class="card-icon">${currentCard.icon}</span>
-                        <h2 class="card-title">${currentCard.title}</h2>
-                        <p class="card-description">${currentCard.description}</p>
-                        <p class="card-tip">${currentCard.tip}</p>
-                    </div>
-                `;
-            } else {
-                display.innerHTML = '<div class="placeholder">Klicka på kortleken för att dra ett kort</div>';
-            }
-        }
-
-        function updateRemaining() {
-            const remaining = document.getElementById('remaining');
-            remaining.textContent = `${availableCards.length} kort kvar i leken`;
-        }
-
-        // Initialize
-        shuffleDeck();
-    </script>
+    <script src="app.js"></script>
 </body>
 </html>
