@@ -1,0 +1,114 @@
+const cards = [
+  {
+    category: "Andning",
+    icon: "🌬️",
+    title: "Fyrkantandning",
+    description: "Andas in i 4 sekunder, håll andan i 4 sekunder, andas ut i 4 sekunder, håll i 4 sekunder. Upprepa 4 gånger.",
+    tip: "Detta aktiverar ditt parasympatiska nervsystem och skapar lugn."
+  },
+  {
+    category: "Andning",
+    icon: "🎈",
+    title: "Lång utandning",
+    description: "Andas in genom näsan i 4 sekunder. Andas sedan ut långsamt genom munnen i 8 sekunder, som om du blåser genom ett sugrör.",
+    tip: "En längre utandning än inandning signalerar trygghet till kroppen."
+  },
+  {
+    category: "Grounding",
+    icon: "👀",
+    title: "5-4-3-2-1 Tekniken",
+    description: "Nämn 5 saker du ser, 4 du kan röra vid, 3 du hör, 2 du kan lukta och 1 du kan smaka.",
+    tip: "Detta förankrar dig i nuet och bryter tankespiraler."
+  },
+  {
+    category: "Grounding",
+    icon: "🦶",
+    title: "Känn dina fötter",
+    description: "Tryck fötterna stadigt mot golvet. Känn tyngden, temperaturen och underlaget. Vicka på tårna.",
+    tip: "Fokus på fötterna hjälper dig att 'landa' i kroppen."
+  },
+  {
+    category: "Rörelse",
+    icon: "🦋",
+    title: "Fjärilskramen",
+    description: "Korsa armarna över bröstet med händerna på axlarna. Klappa växelvis, höger-vänster, i en lugn rytm.",
+    tip: "Bilateral stimulering lugnar nervsystemet."
+  },
+  {
+    category: "Rörelse",
+    icon: "💪",
+    title: "Skaka av dig",
+    description: "Stå upp och skaka händer, armar, ben och hela kroppen i 30-60 sekunder. Låt det vara ostylat!",
+    tip: "Djur skakar av sig stress naturligt - det fungerar för oss också."
+  },
+  {
+    category: "Kyla",
+    icon: "❄️",
+    title: "Kallt vatten",
+    description: "Skölj händerna eller ansiktet med kallt vatten, eller håll isbitar i händerna.",
+    tip: "Kyla aktiverar dykresponsen och sänker pulsen."
+  },
+  {
+    category: "Värme",
+    icon: "☕",
+    title: "Varm dryck",
+    description: "Håll en varm kopp i händerna. Känn värmen sprida sig. Andas in ångan och drick långsamt.",
+    tip: "Värme signalerar trygghet och omsorg till kroppen."
+  },
+  {
+    category: "Social",
+    icon: "🤗",
+    title: "Trygg person",
+    description: "Tänk på eller kontakta någon som får dig att känna dig trygg. Visualisera deras ansikte och röst.",
+    tip: "Social koppling är ett av våra starkaste regleringsverktyg."
+  },
+  {
+    category: "Kropp",
+    icon: "🧘",
+    title: "Kroppsskanning",
+    description: "Börja vid fötterna och vandra uppåt genom kroppen. Notera spänningar utan att döma. Andas till varje område.",
+    tip: "Medvetenhet om kroppen ökar din förmåga att reglera den."
+  },
+  {
+    category: "Ljud",
+    icon: "🎵",
+    title: "Humming",
+    description: "Humma en ton eller en melodi i en minut. Känn vibrationen i bröstkorgen och halsen.",
+    tip: "Att humma stimulerar vagusnerven och skapar lugn."
+  },
+  {
+    category: "Natur",
+    icon: "🌳",
+    title: "Naturkontakt",
+    description: "Gå ut och rör vid ett träd, gräs eller jord. Titta på himlen. Lyssna på naturljud.",
+    tip: "Naturkontakt sänker stresshormoner på bara 20 minuter."
+  },
+  {
+    category: "Gränser",
+    icon: "🛡️",
+    title: "Trygg plats",
+    description: "Visualisera en plats där du känner dig helt trygg. Det kan vara verklig eller påhittad. Utforska den med alla sinnen.",
+    tip: "Hjärnan kan inte helt skilja på verkligt och föreställt - använd det!"
+  },
+  {
+    category: "Aktivering",
+    icon: "⚡",
+    title: "Kall splash",
+    description: "Om du känner dig avstängd eller dimmig - gör 10 hopp på stället eller 10 snabba knäböj.",
+    tip: "Ibland behöver vi aktivera, inte lugna, nervsystemet."
+  },
+  {
+    category: "Medkänsla",
+    icon: "💚",
+    title: "Hand på hjärtat",
+    description: "Lägg handen på hjärtat. Säg till dig själv: 'Det här är svårt just nu. Jag gör så gott jag kan.'",
+    tip: "Beröring och vänliga ord aktiverar lugn-och-ro-systemet."
+  },
+  {
+    category: "Sinnen",
+    icon: "🍋",
+    title: "Surt eller starkt",
+    description: "Ät något surt som citron, eller något starkt som ingefära. Fokusera helt på smaken.",
+    tip: "Starka sinnesintryck bryter dissociation och förankrar i nuet."
+  }
+];
