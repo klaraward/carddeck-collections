@@ -2,6 +2,7 @@
   "id": "nervsystem",
   "name": "Nervsystemreglering",
   "subtitle": "Dra ett kort för vägledning och lugn",
+  "public": true,
   "backgroundColor": "linear-gradient(135deg, #669e6a 0%, #367b62 100%)",
   "cards": [
     {
