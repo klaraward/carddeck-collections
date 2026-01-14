@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <title>Seed Database</title>
+    <style>
+        body { font-family: sans-serif; padding: 40px; max-width: 600px; margin: 0 auto; }
+        button { padding: 15px 30px; font-size: 1.1rem; cursor: pointer; margin: 10px 0; }
+        .success { color: green; }
+        .error { color: red; }
+        input[type="text"] { padding: 10px; font-size: 1rem; width: 300px; margin-right: 10px; }
+        .input-group { margin: 20px 0; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        code { background: #f0f0f0; padding: 2px 6px; border-radius: 3px; }
+        .auto-mode { background: #e8f5e9; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Seed Firestore Database</h1>
+
+    <div id="auto-mode" class="auto-mode" style="display: none;">
+        <p>Laddar upp <strong id="auto-deck-name"></strong> från <code id="auto-file-path"></code>...</p>
+    </div>
+
+    <div id="manual-mode">
+        <p>Ladda upp en kortlek från en JSON-fil till Firebase.</p>
+        <p style="color: #666; font-size: 0.9rem;">Tips: Använd <code>?deck=nervsystem</code> för att automatiskt ladda <code>decks/nervsystem.json</code></p>
+
+        <div class="input-group">
+            <label>JSON-fil</label>
+            <input type="file" id="json-file" accept=".json">
+        </div>
+
+        <button onclick="seedFromFile()">Ladda upp kortlek</button>
+    </div>
+
+    <div id="status"></div>
+
+    <h3 style="margin-top: 40px;">JSON-format</h3>
+    <pre style="background: #f5f5f5; padding: 15px; border-radius: 8px; overflow-x: auto;">
+{
+  "id": "deck-id",
+  "name": "Kortlekens namn",
+  "subtitle": "Beskrivning",
+  "backgroundColor": "linear-gradient(135deg, #669e6a 0%, #367b62 100%)",
+  "cards": [
+    {
+      "category": "Kategori",
+      "icon": "🎯",
+      "title": "Kortets titel",
+      "description": "Beskrivning av övningen...",
+      "tip": "Tips till användaren..."
+    }
+  ]
+}
+    </pre>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="firebase-config.js"></script>
+
+    <script>
+        const status = document.getElementById('status');
+
+        // Check for deck parameter in URL
+        function getDeckIdFromUrl() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('deck');
+        }
+
+        async function seedFromUrl(fileName) {
+            const filePath = `decks/${fileName}.json`;
+
+            document.getElementById('manual-mode').style.display = 'none';
+            document.getElementById('auto-mode').style.display = 'block';
+            document.getElementById('auto-deck-name').textContent = fileName;
+            document.getElementById('auto-file-path').textContent = filePath;
+
+            try {
+                const response = await fetch(filePath);
+                if (!response.ok) {
+                    throw new Error(`Kunde inte hitta filen ${filePath}`);
+                }
+
+                const deckData = await response.json();
+
+                if (!deckData.id) {
+                    throw new Error('JSON saknar fältet "id"');
+                }
+
+                await uploadDeck(deckData.id, deckData);
+            } catch (error) {
+                status.innerHTML = `
+                    <p class="error">✗ Fel: ${error.message}</p>
+                `;
+                console.error(error);
+            }
+        }
+
+        async function seedFromFile() {
+            const fileInput = document.getElementById('json-file');
+
+            if (!fileInput.files[0]) {
+                status.innerHTML = '<p class="error">Välj en JSON-fil.</p>';
+                return;
+            }
+
+            status.innerHTML = '<p>Läser fil och laddar upp...</p>';
+
+            try {
+                const file = fileInput.files[0];
+                const text = await file.text();
+                const deckData = JSON.parse(text);
+
+                if (!deckData.id) {
+                    throw new Error('JSON saknar fältet "id"');
+                }
+
+                await uploadDeck(deckData.id, deckData);
+            } catch (error) {
+                status.innerHTML = `
+                    <p class="error">✗ Fel: ${error.message}</p>
+                    <p>Kontrollera att JSON-filen är korrekt formaterad.</p>
+                `;
+                console.error(error);
+            }
+        }
+
+        async function uploadDeck(deckId, deckData) {
+            // Validate required fields
+            if (!deckData.name) {
+                throw new Error('JSON saknar fältet "name"');
+            }
+            if (!deckData.cards || !Array.isArray(deckData.cards)) {
+                throw new Error('JSON saknar fältet "cards" (måste vara en array)');
+            }
+
+            await db.collection('decks').doc(deckId).set(deckData);
+
+            status.innerHTML = `
+                <p class="success">✓ Kortleken "${deckData.name}" har laddats upp!</p>
+                <p>Antal kort: ${deckData.cards.length}</p>
+                <p>Öppna: <a href="index.html?deck=${deckId}">index.html?deck=${deckId}</a></p>
+            `;
+        }
+
+        // Auto-seed if deck parameter is present
+        const deckId = getDeckIdFromUrl();
+        if (deckId) {
+            seedFromUrl(deckId);
+        }
+    </script>
+</body>
+</html>

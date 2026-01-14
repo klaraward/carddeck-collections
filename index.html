@@ -3,20 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nervsystemreglering - Kortlek</title>
+    <title id="page-title">Kortlek</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <h1>Nervsystemreglering</h1>
-    <p class="subtitle">Dra ett kort for vägledning och lugn</p>
+    <h1 id="app-name">Laddar...</h1>
+    <p class="subtitle" id="app-subtitle"></p>
 
-    <div class="collection-selector" id="collection-selector">
-        <!-- Populated by JavaScript -->
-    </div>
+    <div class="collection-selector" id="collection-selector"></div>
 
     <div class="card-area">
         <div id="card-display">
-            <div class="placeholder">Tryck för att dra ett kort</div>
+            <div class="placeholder" id="placeholder-text"></div>
         </div>
 
         <p class="cards-remaining" id="remaining"></p>
@@ -39,11 +37,11 @@
     <!-- Modal for creating/editing collections -->
     <div class="modal-overlay" id="create-modal">
         <div class="modal">
-            <h3 id="modal-title">Ny samling</h3>
-            <input type="text" id="collection-name-input" placeholder="Namn på samlingen">
+            <h3 id="modal-title"></h3>
+            <input type="text" id="collection-name-input">
             <div class="modal-buttons">
-                <button class="modal-btn secondary" onclick="closeModal()">Avbryt</button>
-                <button class="modal-btn primary" onclick="saveCollection()">Spara</button>
+                <button class="modal-btn secondary" onclick="closeModal()" id="btn-cancel-create"></button>
+                <button class="modal-btn primary" onclick="saveCollection()" id="btn-save"></button>
             </div>
         </div>
     </div>
@@ -51,11 +49,11 @@
     <!-- Modal for confirming deletion -->
     <div class="modal-overlay" id="delete-modal">
         <div class="modal">
-            <h3>Ta bort samling</h3>
-            <p style="color: #666; margin-bottom: 15px;">Är du säker på att du vill ta bort "<span id="delete-collection-name"></span>"?</p>
+            <h3 id="delete-modal-title"></h3>
+            <p style="color: #666; margin-bottom: 15px;" id="delete-confirm-text"></p>
             <div class="modal-buttons">
-                <button class="modal-btn secondary" onclick="closeDeleteModal()">Avbryt</button>
-                <button class="modal-btn danger" onclick="confirmDeleteCollection()">Ta bort</button>
+                <button class="modal-btn secondary" onclick="closeDeleteModal()" id="btn-cancel-delete"></button>
+                <button class="modal-btn danger" onclick="confirmDeleteCollection()" id="btn-delete"></button>
             </div>
         </div>
     </div>
@@ -63,18 +61,23 @@
     <!-- Modal for managing a collection -->
     <div class="modal-overlay" id="manage-modal">
         <div class="modal">
-            <h3 id="manage-modal-title">Hantera samling</h3>
+            <h3 id="manage-modal-title"></h3>
             <div class="modal-buttons" style="flex-direction: column; align-items: stretch;">
-                <button class="modal-btn secondary" onclick="editCollectionName()" style="text-align: left;">Byt namn</button>
-                <button class="modal-btn danger" onclick="showDeleteModal()" style="text-align: left;">Ta bort samling</button>
+                <button class="modal-btn secondary" onclick="editCollectionName()" style="text-align: left;" id="btn-rename"></button>
+                <button class="modal-btn danger" onclick="showDeleteModal()" style="text-align: left;" id="btn-delete-collection"></button>
             </div>
             <div class="collection-actions">
-                <button class="modal-btn secondary" onclick="closeManageModal()" style="width: 100%;">Stäng</button>
+                <button class="modal-btn secondary" onclick="closeManageModal()" style="width: 100%;" id="btn-close"></button>
             </div>
         </div>
     </div>
 
-    <script src="cards.js"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+    <!-- App scripts -->
+    <script src="firebase-config.js"></script>
     <script src="icons.js"></script>
     <script src="app.js"></script>
 </body>

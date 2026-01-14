@@ -1,11 +1,79 @@
-let availableCards = [...cards];
+let cards = [];
+let availableCards = [];
 let currentCard = null;
 let currentCollection = 'all';
-let collections = JSON.parse(localStorage.getItem('collections') || '{}');
+let currentDeckId = null;
+let collections = {};
 let editingCollection = null;
 let collectionToDelete = null;
 let menuOpen = false;
 let sequentialIndex = 0;
+
+// Get deck ID from URL parameter
+function getDeckIdFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('deck');
+}
+
+// Load deck from Firebase
+async function loadDeck(deckId) {
+    showLoading();
+
+    try {
+        const doc = await db.collection('decks').doc(deckId).get();
+
+        if (!doc.exists) {
+            showError('Kortleken hittades inte');
+            return false;
+        }
+
+        const deckData = doc.data();
+
+        // Set deck config
+        document.getElementById('page-title').textContent = deckData.name + ' - Kortlek';
+        document.getElementById('app-name').textContent = deckData.name;
+        document.getElementById('app-subtitle').textContent = deckData.subtitle || '';
+
+        // Set background color if specified
+        if (deckData.backgroundColor) {
+            document.documentElement.style.setProperty('--bg-gradient', deckData.backgroundColor);
+        }
+
+        // Load cards
+        cards = deckData.cards || [];
+        currentDeckId = deckId;
+
+        // Load collections for this deck from localStorage
+        const savedCollections = localStorage.getItem('collections_' + deckId);
+        collections = savedCollections ? JSON.parse(savedCollections) : {};
+
+        hideLoading();
+        return true;
+    } catch (error) {
+        console.error('Error loading deck:', error);
+        showError('Kunde inte ladda kortleken');
+        return false;
+    }
+}
+
+function showLoading() {
+    document.getElementById('card-display').innerHTML = '<div class="placeholder">Laddar kortlek...</div>';
+    document.getElementById('collection-selector').style.display = 'none';
+    document.querySelector('.deck').style.display = 'none';
+    document.querySelector('.shuffle-btn').style.display = 'none';
+}
+
+function hideLoading() {
+    document.getElementById('collection-selector').style.display = 'flex';
+    document.querySelector('.deck').style.display = 'block';
+    document.querySelector('.shuffle-btn').style.display = 'block';
+}
+
+function showError(message) {
+    document.getElementById('app-name').textContent = 'Fel';
+    document.getElementById('app-subtitle').textContent = '';
+    document.getElementById('card-display').innerHTML = `<div class="placeholder">${message}</div>`;
+}
 
 function getCardId(card) {
     return card.title;
@@ -39,7 +107,9 @@ function getCollectionCards(collectionId) {
 }
 
 function saveCollections() {
-    localStorage.setItem('collections', JSON.stringify(collections));
+    if (currentDeckId) {
+        localStorage.setItem('collections_' + currentDeckId, JSON.stringify(collections));
+    }
 }
 
 function setCollection(collectionId) {
@@ -163,7 +233,7 @@ function updateDisplay() {
             </div>
         `;
     } else {
-        display.innerHTML = '<div class="placeholder">Klicka på kortleken för att dra ett kort</div>';
+        display.innerHTML = `<div class="placeholder">Klicka på kortleken för att dra ett kort</div>`;
     }
 }
 
@@ -256,7 +326,7 @@ function editCollectionName() {
 
 function showDeleteModal() {
     collectionToDelete = editingCollection;
-    document.getElementById('delete-collection-name').textContent = collections[collectionToDelete].name;
+    document.getElementById('delete-confirm-text').textContent = `Är du säker på att du vill ta bort "${collections[collectionToDelete].name}"?`;
     closeManageModal();
     document.getElementById('delete-modal').classList.add('active');
 }
@@ -295,6 +365,32 @@ document.getElementById('btn-draw-next').textContent = icons.drawNext;
 document.getElementById('deck-icon').textContent = icons.deck;
 document.getElementById('btn-reset').textContent = icons.reset + ' Börja om';
 
-// Initialize
-renderCollectionSelector();
-resetDeck();
+// Initialize modal buttons
+document.getElementById('collection-name-input').placeholder = 'Namn på samlingen';
+document.getElementById('btn-cancel-create').textContent = 'Avbryt';
+document.getElementById('btn-save').textContent = 'Spara';
+document.getElementById('delete-modal-title').textContent = 'Ta bort samling';
+document.getElementById('btn-cancel-delete').textContent = 'Avbryt';
+document.getElementById('btn-delete').textContent = 'Ta bort';
+document.getElementById('btn-rename').textContent = 'Byt namn';
+document.getElementById('btn-delete-collection').textContent = 'Ta bort samling';
+document.getElementById('btn-close').textContent = 'Stäng';
+
+// Initialize app
+async function init() {
+    const deckId = getDeckIdFromUrl();
+
+    if (!deckId) {
+        showError('Ingen kortlek vald. Lägg till ?deck=ID i URL:en.');
+        return;
+    }
+
+    const loaded = await loadDeck(deckId);
+
+    if (loaded) {
+        renderCollectionSelector();
+        resetDeck();
+    }
+}
+
+init();
