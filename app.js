@@ -141,7 +141,7 @@ function updateDisplay() {
                         return `
                             <div class="collection-menu-item ${inCollection ? 'in-collection' : ''}"
                                  onclick="toggleCardInCollection(currentCard, '${id}')">
-                                ${inCollection ? '✓' : ''} ${collections[id].name}
+                                ${inCollection ? icons.inCollection : ''} ${collections[id].name}
                             </div>
                         `;
                     }).join('')}
@@ -152,7 +152,7 @@ function updateDisplay() {
         display.innerHTML = `
             <div class="drawn-card">
                 <button class="add-to-collection-btn" onclick="toggleCollectionMenu(event)" title="Lägg till i samling">
-                    📁
+                    ${icons.addToCollection}
                 </button>
                 ${menuHtml}
                 <span class="card-category">${currentCard.category}</span>
@@ -199,7 +199,7 @@ function renderCollectionSelector() {
 
     html += `
         <button class="add-collection-btn" onclick="openCreateModal()" title="Skapa ny samling">
-            +
+            ${icons.addCollection}
         </button>
     `;
 
@@ -288,6 +288,12 @@ document.getElementById('collection-name-input').addEventListener('keypress', fu
 
 // Close menu when clicking outside
 document.addEventListener('click', closeMenuOnClickOutside);
+
+// Initialize icons
+document.getElementById('btn-draw-random').textContent = icons.drawRandom;
+document.getElementById('btn-draw-next').textContent = icons.drawNext;
+document.getElementById('deck-icon').textContent = icons.deck;
+document.getElementById('btn-reset').textContent = icons.reset + ' Börja om';
 
 // Initialize
 renderCollectionSelector();

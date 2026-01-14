@@ -23,21 +23,17 @@
 
         <div class="deck">
             <div class="deck-buttons">
-                <button class="deck-mode-btn" onclick="drawRandomCard()" title="Dra slumpat kort">
-                    🔀
-                </button>
-                <button class="deck-mode-btn" onclick="drawNextCard()" title="Dra nästa kort">
-                    📋
-                </button>
+                <button class="deck-mode-btn" onclick="drawRandomCard()" title="Dra slumpat kort" id="btn-draw-random"></button>
+                <button class="deck-mode-btn" onclick="drawNextCard()" title="Dra nästa kort" id="btn-draw-next"></button>
             </div>
             <div class="deck-card" onclick="drawCard()"></div>
             <div class="deck-card" onclick="drawCard()"></div>
             <div class="deck-card" onclick="drawCard()">
-                <span class="deck-icon">🧠</span>
+                <span class="deck-icon" id="deck-icon"></span>
             </div>
         </div>
 
-        <button class="shuffle-btn" onclick="shuffleDeck()">🔄 Börja om</button>
+        <button class="shuffle-btn" onclick="shuffleDeck()" id="btn-reset"></button>
     </div>
 
     <!-- Modal for creating/editing collections -->
@@ -79,6 +75,7 @@
     </div>
 
     <script src="cards.js"></script>
+    <script src="icons.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
