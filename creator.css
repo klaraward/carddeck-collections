@@ -1,5 +1,11 @@
 /* Creator page specific styles */
 
+/* Creator info shown in deck list on index page */
+.deck-item-creator {
+    color: #888;
+    font-style: italic;
+}
+
 .creator-form {
     width: 100%;
     max-width: 450px;
@@ -141,4 +147,195 @@
     padding: 8px 12px;
     color: #999;
     font-size: 0.85rem;
+}
+
+/* Logged in as indicator */
+.logged-in-as {
+    background: #f0f7f4;
+    color: #367b62;
+    padding: 10px 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+}
+
+.logged-in-as strong {
+    font-weight: 600;
+}
+
+/* Creator dashboard */
+.creator-dashboard {
+    width: 100%;
+    max-width: 500px;
+    margin: 20px auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.section-header h2 {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 1.2rem;
+}
+
+.btn-add {
+    padding: 8px 16px;
+    background: #367b62;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+}
+
+.btn-add:hover {
+    background: #2d6652;
+}
+
+/* My decks list */
+.my-decks-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.my-deck-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 15px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    transition: background 0.2s;
+}
+
+.my-deck-item:hover {
+    background: #f0f1f2;
+}
+
+.my-deck-icon {
+    font-size: 1.5rem;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.my-deck-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.my-deck-name {
+    font-weight: 600;
+    color: #2c3e50;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.my-deck-meta {
+    font-size: 0.8rem;
+    color: #666;
+}
+
+.my-deck-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.btn-view {
+    padding: 6px 10px;
+    background: #e9ecef;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    text-decoration: none;
+    transition: background 0.2s;
+}
+
+.btn-view:hover {
+    background: #dee2e6;
+}
+
+.btn-edit {
+    padding: 6px 12px;
+    background: #e9ecef;
+    color: #495057;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: background 0.2s;
+}
+
+.btn-edit:hover {
+    background: #dee2e6;
+}
+
+.btn-delete {
+    padding: 6px 12px;
+    background: #f8d7da;
+    color: #721c24;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: background 0.2s;
+}
+
+.btn-delete:hover {
+    background: #f1b0b7;
+}
+
+.private-badge {
+    font-size: 0.7rem;
+    background: #ffc107;
+    color: #856404;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+.empty-message {
+    text-align: center;
+    padding: 20px;
+    color: #666;
+}
+
+.loading {
+    text-align: center;
+    padding: 20px;
+    color: #666;
+}
+
+.error-message {
+    text-align: center;
+    padding: 20px;
+    color: #dc3545;
+}
+
+/* Form card title */
+.form-card h2 {
+    margin: 0 0 20px 0;
+    color: #2c3e50;
+    font-size: 1.2rem;
 }

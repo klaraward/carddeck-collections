@@ -8,26 +8,53 @@
     <link rel="stylesheet" href="creator.css">
 </head>
 <body>
-    <h1>Skapa kortlek</h1>
-    <p class="subtitle">Skapa och importera nya kortlekar</p>
+    <a href="index.html" class="back-link">← Tillbaka</a>
+    <h1 id="page-title">Creator</h1>
+    <p class="subtitle" id="creator-subtitle">Logga in för att hantera kortlekar</p>
 
-    <!-- Admin password modal -->
-    <div class="modal-overlay" id="admin-password-modal">
+    <!-- Creator login modal -->
+    <div class="modal-overlay active" id="login-modal">
         <div class="modal">
-            <h3>Admin-lösenord</h3>
-            <p style="color: #666; margin-bottom: 15px; font-size: 0.9rem;">Ange lösenord för att skapa kortlekar</p>
-            <input type="password" id="admin-password-input" placeholder="Lösenord">
+            <h3>Logga in som creator</h3>
+            <div class="form-group">
+                <label for="creator-name-input">Namn</label>
+                <input type="text" id="creator-name-input" placeholder="Ditt creator-namn">
+            </div>
+            <div class="form-group">
+                <label for="creator-password-input">Lösenord</label>
+                <input type="password" id="creator-password-input" placeholder="Ditt lösenord">
+            </div>
             <div class="modal-buttons">
                 <a href="index.html" class="modal-btn secondary">Avbryt</a>
-                <button class="modal-btn primary" onclick="verifyAdminPassword()">Fortsätt</button>
+                <button class="modal-btn primary" onclick="loginCreator()">Logga in</button>
             </div>
         </div>
     </div>
 
-    <!-- Creator form (hidden until authenticated) -->
-    <div class="creator-form" id="creator-form" style="display: none;">
+    <!-- Creator dashboard (hidden until authenticated) -->
+    <div class="creator-dashboard" id="creator-dashboard" style="display: none;">
+
+        <!-- My decks section -->
         <div class="form-card">
-            <div class="form-group">
+            <div class="logged-in-as">
+                Inloggad som: <strong id="logged-in-name"></strong>
+            </div>
+
+            <div class="section-header">
+                <h2>Mina kortlekar</h2>
+                <button class="btn-add" onclick="showCreateForm()">+ Ny kortlek</button>
+            </div>
+
+            <div class="my-decks-list" id="my-decks-list">
+                <p class="loading">Laddar...</p>
+            </div>
+        </div>
+
+        <!-- Create/Edit deck form (hidden by default) -->
+        <div class="form-card" id="deck-form-card" style="display: none;">
+            <h2 id="deck-form-title">Ny kortlek</h2>
+
+            <div class="form-group" id="deck-id-group">
                 <label for="deck-id-input">ID (används i URL)</label>
                 <input type="text" id="deck-id-input" placeholder="t.ex. minlek">
             </div>
@@ -68,13 +95,26 @@
                 <label for="deck-csv-input">Importera kort (CSV)</label>
                 <input type="file" id="deck-csv-input" accept=".csv">
                 <p class="form-hint">Format: category,icon,title,description,tip</p>
+                <p class="form-hint" id="current-cards-hint" style="display: none;"></p>
             </div>
 
             <div id="csv-preview" class="csv-preview"></div>
 
             <div class="form-actions">
-                <a href="index.html" class="modal-btn secondary">Tillbaka</a>
-                <button class="modal-btn primary" onclick="saveDeck()">Skapa kortlek</button>
+                <button class="modal-btn secondary" onclick="hideCreateForm()">Avbryt</button>
+                <button class="modal-btn primary" onclick="saveDeck()" id="save-deck-btn">Skapa kortlek</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for confirming deletion -->
+    <div class="modal-overlay" id="delete-deck-modal">
+        <div class="modal">
+            <h3>Ta bort kortlek</h3>
+            <p style="color: #666; margin-bottom: 15px;" id="delete-deck-text"></p>
+            <div class="modal-buttons">
+                <button class="modal-btn secondary" onclick="closeDeleteDeckModal()">Avbryt</button>
+                <button class="modal-btn danger" onclick="confirmDeleteDeck()">Ta bort</button>
             </div>
         </div>
     </div>

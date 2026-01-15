@@ -32,7 +32,13 @@ async function loadDeck(deckId) {
         // Set deck config
         document.getElementById('page-title').textContent = deckData.name + ' - Kortlek';
         document.getElementById('app-name').textContent = deckData.name;
-        document.getElementById('app-subtitle').textContent = deckData.subtitle || '';
+
+        // Build subtitle with creator info
+        let subtitleText = deckData.subtitle || '';
+        if (deckData.creatorName) {
+            subtitleText += (subtitleText ? ' · ' : '') + 'av ' + deckData.creatorName;
+        }
+        document.getElementById('app-subtitle').textContent = subtitleText;
 
         // Set background color if specified
         if (deckData.backgroundColor) {
@@ -84,7 +90,7 @@ function showError(message) {
 // Load and display public decks for selection
 async function loadPublicDecks() {
     document.getElementById('app-name').textContent = 'Välj kortlek';
-    document.getElementById('app-subtitle').textContent = 'Välj en kortlek att spela med';
+    document.getElementById('app-subtitle').textContent = 'Välj en kortlek att dra kort ur';
     document.getElementById('page-title').textContent = 'Välj kortlek';
 
     document.getElementById('deck-selector').style.display = 'block';
@@ -106,12 +112,13 @@ async function loadPublicDecks() {
         snapshot.forEach(doc => {
             const deck = doc.data();
             const cardCount = deck.cards ? deck.cards.length : 0;
+            const creatorInfo = deck.creatorName ? `<span class="deck-item-creator">av ${deck.creatorName}</span>` : '';
             html += `
                 <a href="?deck=${doc.id}" class="deck-item">
                     <span class="deck-item-icon">${deck.icon || '🃏'}</span>
                     <div class="deck-item-info">
                         <span class="deck-item-name">${deck.name}</span>
-                        <span class="deck-item-subtitle">${deck.subtitle || ''}</span>
+                        <span class="deck-item-subtitle">${deck.subtitle || ''}${deck.subtitle && deck.creatorName ? ' · ' : ''}${creatorInfo}</span>
                     </div>
                     <span class="deck-item-count">${cardCount} kort</span>
                 </a>
@@ -277,14 +284,14 @@ function updateDisplay() {
                 <div class="collection-menu ${menuOpen ? 'active' : ''}" onclick="event.stopPropagation()">
                     <div class="collection-menu-header">Lägg till i samling</div>
                     ${collectionIds.map(id => {
-                        const inCollection = isInCollection(currentCard, id);
-                        return `
+                const inCollection = isInCollection(currentCard, id);
+                return `
                             <div class="collection-menu-item ${inCollection ? 'in-collection' : ''}"
                                  onclick="toggleCardInCollection(currentCard, '${id}')">
                                 ${inCollection ? icons.inCollection : ''} ${collections[id].name}
                             </div>
                         `;
-                    }).join('')}
+            }).join('')}
                 </div>
             `;
         }
@@ -424,7 +431,7 @@ function confirmDeleteCollection() {
 }
 
 // Handle Enter key in modal
-document.getElementById('collection-name-input').addEventListener('keypress', function(e) {
+document.getElementById('collection-name-input').addEventListener('keypress', function (e) {
     if (e.key === 'Enter') {
         saveCollection();
     }

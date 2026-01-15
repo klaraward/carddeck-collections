@@ -1,41 +1,189 @@
 // Creator page functionality
 let parsedCsvCards = [];
+let currentCreator = null; // { id, name }
+let editingDeckId = null;
+let deckToDelete = null;
 
-// Show password modal on page load
-document.getElementById('admin-password-modal').classList.add('active');
-document.getElementById('admin-password-input').focus();
+// Focus on name input on page load
+document.getElementById('creator-name-input').focus();
 
-// Admin password verification
-async function verifyAdminPassword() {
-    const enteredPassword = document.getElementById('admin-password-input').value;
+// Creator login
+async function loginCreator() {
+    const name = document.getElementById('creator-name-input').value.trim();
+    const password = document.getElementById('creator-password-input').value;
+
+    if (!name || !password) {
+        alert('Ange både namn och lösenord.');
+        return;
+    }
 
     try {
-        const doc = await db.collection('settings').doc('admin').get();
+        // Find creator by name
+        const snapshot = await db.collection('creators')
+            .where('name', '==', name)
+            .get();
 
-        if (!doc.exists) {
-            alert('Admin-inställningar saknas i databasen.');
+        if (snapshot.empty) {
+            alert('Ingen creator med det namnet hittades.');
             return;
         }
 
-        const adminSettings = doc.data();
+        const creatorDoc = snapshot.docs[0];
+        const creatorData = creatorDoc.data();
 
-        if (enteredPassword === adminSettings.password) {
-            document.getElementById('admin-password-modal').classList.remove('active');
-            document.getElementById('creator-form').style.display = 'block';
-            document.getElementById('deck-id-input').focus();
-        } else {
+        if (password !== creatorData.password) {
             alert('Fel lösenord.');
+            return;
         }
+
+        // Login successful
+        currentCreator = {
+            id: creatorDoc.id,
+            name: creatorData.name
+        };
+
+        document.getElementById('login-modal').classList.remove('active');
+        document.getElementById('creator-dashboard').style.display = 'block';
+        document.getElementById('logged-in-name').textContent = currentCreator.name;
+        document.getElementById('creator-subtitle').textContent = 'Hantera dina kortlekar';
+
+        // Load creator's decks
+        loadMyDecks();
+
     } catch (error) {
-        console.error('Error verifying password:', error);
-        alert('Kunde inte verifiera lösenordet.');
+        console.error('Error logging in:', error);
+        alert('Kunde inte logga in: ' + error.message);
     }
 }
 
-// Handle Enter key in password modal
-document.getElementById('admin-password-input').addEventListener('keypress', function(e) {
+// Load creator's decks
+async function loadMyDecks() {
+    const listEl = document.getElementById('my-decks-list');
+
+    try {
+        const snapshot = await db.collection('decks')
+            .where('creatorId', '==', currentCreator.id)
+            .get();
+
+        if (snapshot.empty) {
+            listEl.innerHTML = '<p class="empty-message">Du har inga kortlekar ännu. Skapa din första!</p>';
+            return;
+        }
+
+        let html = '';
+        snapshot.forEach(doc => {
+            const deck = doc.data();
+            const cardCount = deck.cards ? deck.cards.length : 0;
+            const publicBadge = deck.public ? '' : '<span class="private-badge">Privat</span>';
+            html += `
+                <div class="my-deck-item">
+                    <div class="my-deck-icon">${deck.icon || '🃏'}</div>
+                    <div class="my-deck-info">
+                        <span class="my-deck-name">${deck.name} ${publicBadge}</span>
+                        <span class="my-deck-meta">${cardCount} kort · ID: ${doc.id}</span>
+                    </div>
+                    <div class="my-deck-actions">
+                        <a href="index.html?deck=${doc.id}" class="btn-view" title="Visa">👁️</a>
+                        <button class="btn-edit" onclick="editDeck('${doc.id}')">Redigera</button>
+                        <button class="btn-delete" onclick="openDeleteDeckModal('${doc.id}', '${deck.name}')">Ta bort</button>
+                    </div>
+                </div>
+            `;
+        });
+
+        listEl.innerHTML = html;
+    } catch (error) {
+        console.error('Error loading decks:', error);
+        listEl.innerHTML = '<p class="error-message">Kunde inte ladda kortlekar.</p>';
+    }
+}
+
+// Show create form
+function showCreateForm() {
+    editingDeckId = null;
+    parsedCsvCards = [];
+
+    document.getElementById('deck-form-title').textContent = 'Ny kortlek';
+    document.getElementById('deck-id-group').style.display = 'block';
+    document.getElementById('deck-id-input').value = '';
+    document.getElementById('deck-id-input').disabled = false;
+    document.getElementById('deck-name-input').value = '';
+    document.getElementById('deck-subtitle-input').value = '';
+    document.getElementById('deck-icon-input').value = '🃏';
+    document.getElementById('deck-color-input').value = '#669e6a';
+    document.getElementById('deck-textcolor-input').value = '#ffffff';
+    document.getElementById('deck-public-input').checked = true;
+    document.getElementById('deck-csv-input').value = '';
+    document.getElementById('csv-preview').innerHTML = '';
+    document.getElementById('current-cards-hint').style.display = 'none';
+    document.getElementById('save-deck-btn').textContent = 'Skapa kortlek';
+
+    document.getElementById('deck-form-card').style.display = 'block';
+    document.getElementById('deck-name-input').focus();
+}
+
+// Hide create form
+function hideCreateForm() {
+    document.getElementById('deck-form-card').style.display = 'none';
+    editingDeckId = null;
+    parsedCsvCards = [];
+}
+
+// Edit deck
+async function editDeck(deckId) {
+    try {
+        const doc = await db.collection('decks').doc(deckId).get();
+
+        if (!doc.exists) {
+            alert('Kortleken hittades inte.');
+            return;
+        }
+
+        const deck = doc.data();
+        editingDeckId = deckId;
+        parsedCsvCards = deck.cards || [];
+
+        document.getElementById('deck-form-title').textContent = 'Redigera kortlek';
+        document.getElementById('deck-id-group').style.display = 'none';
+        document.getElementById('deck-name-input').value = deck.name;
+        document.getElementById('deck-subtitle-input').value = deck.subtitle || '';
+        document.getElementById('deck-icon-input').value = deck.icon || '🃏';
+
+        // Extract color from gradient
+        const colorMatch = deck.backgroundColor?.match(/#[a-fA-F0-9]{6}/);
+        document.getElementById('deck-color-input').value = colorMatch ? colorMatch[0] : '#669e6a';
+
+        document.getElementById('deck-textcolor-input').value = deck.textColor || '#ffffff';
+        document.getElementById('deck-public-input').checked = deck.public !== false;
+        document.getElementById('deck-csv-input').value = '';
+        document.getElementById('csv-preview').innerHTML = '';
+
+        // Show current cards hint
+        const hint = document.getElementById('current-cards-hint');
+        hint.textContent = `Nuvarande: ${parsedCsvCards.length} kort. Ladda upp ny CSV för att ersätta.`;
+        hint.style.display = 'block';
+
+        document.getElementById('save-deck-btn').textContent = 'Spara ändringar';
+
+        document.getElementById('deck-form-card').style.display = 'block';
+        document.getElementById('deck-name-input').focus();
+
+    } catch (error) {
+        console.error('Error loading deck:', error);
+        alert('Kunde inte ladda kortleken: ' + error.message);
+    }
+}
+
+// Handle Enter key in login modal
+document.getElementById('creator-name-input').addEventListener('keypress', function(e) {
     if (e.key === 'Enter') {
-        verifyAdminPassword();
+        document.getElementById('creator-password-input').focus();
+    }
+});
+
+document.getElementById('creator-password-input').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        loginCreator();
     }
 });
 
@@ -49,6 +197,7 @@ document.getElementById('deck-csv-input').addEventListener('change', function(e)
         const csvText = event.target.result;
         parsedCsvCards = parseCSV(csvText);
         showCsvPreview(parsedCsvCards);
+        document.getElementById('current-cards-hint').style.display = 'none';
     };
     reader.readAsText(file);
 });
@@ -127,7 +276,12 @@ function showCsvPreview(cards) {
 }
 
 async function saveDeck() {
-    const deckId = document.getElementById('deck-id-input').value.trim();
+    if (!currentCreator) {
+        alert('Du måste vara inloggad för att spara kortlekar.');
+        return;
+    }
+
+    const deckId = editingDeckId || document.getElementById('deck-id-input').value.trim();
     const name = document.getElementById('deck-name-input').value.trim();
     const subtitle = document.getElementById('deck-subtitle-input').value.trim();
     const icon = document.getElementById('deck-icon-input').value.trim() || '🃏';
@@ -151,23 +305,24 @@ async function saveDeck() {
         return;
     }
 
-    // Validate ID format (only lowercase letters, numbers, hyphens)
-    if (!/^[a-z0-9-]+$/.test(deckId)) {
+    // Validate ID format for new decks
+    if (!editingDeckId && !/^[a-z0-9-]+$/.test(deckId)) {
         alert('ID får bara innehålla små bokstäver, siffror och bindestreck.');
         return;
     }
 
     try {
-        // Check if deck already exists
-        const existing = await db.collection('decks').doc(deckId).get();
-        if (existing.exists) {
-            if (!confirm('En kortlek med detta ID finns redan. Vill du skriva över den?')) {
+        // Check if deck already exists (only for new decks)
+        if (!editingDeckId) {
+            const existing = await db.collection('decks').doc(deckId).get();
+            if (existing.exists) {
+                alert('En kortlek med detta ID finns redan. Välj ett annat ID.');
                 return;
             }
         }
 
-        // Save to Firestore
-        await db.collection('decks').doc(deckId).set({
+        // Build deck data
+        const deckData = {
             name: name,
             subtitle: subtitle,
             icon: icon,
@@ -175,16 +330,74 @@ async function saveDeck() {
             textColor: textColor,
             public: isPublic,
             cards: parsedCsvCards,
-            createdAt: new Date().toISOString()
-        });
+            creatorId: currentCreator.id,
+            creatorName: currentCreator.name,
+            updatedAt: new Date().toISOString()
+        };
 
-        alert('Kortleken har skapats!');
+        // Only set createdAt for new decks
+        if (!editingDeckId) {
+            deckData.createdAt = new Date().toISOString();
+        }
 
-        // Redirect to the new deck
-        window.location.href = `index.html?deck=${deckId}`;
+        // Save to Firestore with creator info
+        await db.collection('decks').doc(deckId).set(deckData, { merge: true });
+
+        // Update creator's deck count
+        await updateCreatorDeckCount(currentCreator.id);
+
+        alert(editingDeckId ? 'Kortleken har uppdaterats!' : 'Kortleken har skapats!');
+
+        // Hide form and reload list
+        hideCreateForm();
+        loadMyDecks();
+
     } catch (error) {
         console.error('Error saving deck:', error);
         alert('Kunde inte spara kortleken: ' + error.message);
+    }
+}
+
+// Delete deck modal
+function openDeleteDeckModal(deckId, deckName) {
+    deckToDelete = deckId;
+    document.getElementById('delete-deck-text').textContent = `Är du säker på att du vill ta bort "${deckName}"? Detta kan inte ångras.`;
+    document.getElementById('delete-deck-modal').classList.add('active');
+}
+
+function closeDeleteDeckModal() {
+    document.getElementById('delete-deck-modal').classList.remove('active');
+    deckToDelete = null;
+}
+
+async function confirmDeleteDeck() {
+    if (!deckToDelete) return;
+
+    try {
+        await db.collection('decks').doc(deckToDelete).delete();
+
+        // Update creator's deck count
+        await updateCreatorDeckCount(currentCreator.id);
+
+        closeDeleteDeckModal();
+        loadMyDecks();
+    } catch (error) {
+        console.error('Error deleting deck:', error);
+        alert('Kunde inte ta bort kortleken: ' + error.message);
+    }
+}
+
+async function updateCreatorDeckCount(creatorId) {
+    try {
+        const snapshot = await db.collection('decks')
+            .where('creatorId', '==', creatorId)
+            .get();
+
+        await db.collection('creators').doc(creatorId).update({
+            deckCount: snapshot.size
+        });
+    } catch (error) {
+        console.error('Error updating deck count:', error);
     }
 }
 
