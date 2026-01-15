@@ -4,6 +4,9 @@ admin.initializeApp();
 
 const db = admin.firestore();
 
+// Use Europe region to match Firestore location (eur3)
+const europeRegion = functions.region('europe-west1');
+
 // Helper: Check if user is admin
 async function isAdmin(uid) {
     const creatorDoc = await db.collection('creators').doc(uid).get();
@@ -24,7 +27,7 @@ async function updateCreatorDeckCount(creatorId) {
  * Create a new creator (admin only)
  * Creates Firebase Auth user + Firestore document
  */
-exports.createCreator = functions.https.onCall(async (data, context) => {
+exports.createCreator = europeRegion.https.onCall(async (data, context) => {
     // Verify caller is authenticated
     if (!context.auth) {
         throw new functions.https.HttpsError('unauthenticated', 'Must be logged in');
@@ -77,7 +80,7 @@ exports.createCreator = functions.https.onCall(async (data, context) => {
  * Delete a creator (admin only)
  * Deletes Firebase Auth user + Firestore document
  */
-exports.deleteCreator = functions.https.onCall(async (data, context) => {
+exports.deleteCreator = europeRegion.https.onCall(async (data, context) => {
     if (!context.auth) {
         throw new functions.https.HttpsError('unauthenticated', 'Must be logged in');
     }
@@ -123,13 +126,18 @@ exports.deleteCreator = functions.https.onCall(async (data, context) => {
  * Save (create or update) a deck
  * Verifies ownership for updates
  */
-exports.saveDeck = functions.https.onCall(async (data, context) => {
+exports.saveDeck = europeRegion.https.onCall(async (data, context) => {
+    console.log('saveDeck called with data:', JSON.stringify(data));
+    console.log('Auth context:', context.auth ? `uid=${context.auth.uid}` : 'not authenticated');
+
     if (!context.auth) {
         throw new functions.https.HttpsError('unauthenticated', 'Must be logged in');
     }
 
     const { deckId, deckData, isEdit } = data;
     const uid = context.auth.uid;
+
+    console.log('Processing deck:', deckId, 'isEdit:', isEdit, 'uid:', uid);
 
     if (!deckId || !deckData) {
         throw new functions.https.HttpsError('invalid-argument', 'Deck ID and data are required');
@@ -185,12 +193,16 @@ exports.saveDeck = functions.https.onCall(async (data, context) => {
     }
 
     try {
+        console.log('Saving deck to Firestore...');
         await db.collection('decks').doc(deckId).set(deck, { merge: true });
+        console.log('Deck saved, updating deck count...');
         await updateCreatorDeckCount(uid);
+        console.log('Done!');
         return { success: true, deckId };
     } catch (error) {
         console.error('Error saving deck:', error);
-        throw new functions.https.HttpsError('internal', error.message);
+        console.error('Error stack:', error.stack);
+        throw new functions.https.HttpsError('internal', error.message || 'Unknown error saving deck');
     }
 });
 
@@ -198,7 +210,7 @@ exports.saveDeck = functions.https.onCall(async (data, context) => {
  * Delete a deck
  * Verifies ownership or admin status
  */
-exports.deleteDeck = functions.https.onCall(async (data, context) => {
+exports.deleteDeck = europeRegion.https.onCall(async (data, context) => {
     if (!context.auth) {
         throw new functions.https.HttpsError('unauthenticated', 'Must be logged in');
     }

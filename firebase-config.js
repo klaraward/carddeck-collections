@@ -13,14 +13,14 @@ const firebaseConfig = {
 const appConfig = {
     // Set to 'client' to create users via client-side Firebase Auth (less secure, but works without Cloud Functions)
     // Set to 'server' to create users via Cloud Functions (more secure)
-    createUserMode: 'client'
+    createUserMode: 'server'
 };
 
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const auth = firebase.auth();
-const functions = firebase.functions();
+const functions = firebase.app().functions('europe-west1');
 
 // Uncomment for local development with emulators
 // functions.useEmulator('localhost', 5001);
