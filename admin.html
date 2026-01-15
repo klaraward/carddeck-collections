@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Kortlek</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+    <a href="index.html" class="back-link">← Tillbaka</a>
+    <h1>Admin</h1>
+    <p class="subtitle">Hantera creators och kortlekar</p>
+
+    <!-- Admin password modal -->
+    <div class="modal-overlay active" id="admin-password-modal">
+        <div class="modal">
+            <h3>Admin-lösenord</h3>
+            <p style="color: #666; margin-bottom: 15px; font-size: 0.9rem;">Ange lösenord för att komma åt admin</p>
+            <input type="password" id="admin-password-input" placeholder="Lösenord">
+            <div class="modal-buttons">
+                <a href="index.html" class="modal-btn secondary">Avbryt</a>
+                <button class="modal-btn primary" onclick="verifyAdminPassword()">Logga in</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin content (hidden until authenticated) -->
+    <div class="admin-content" id="admin-content" style="display: none;">
+
+        <!-- Creators list -->
+        <div class="admin-section">
+            <div class="section-header">
+                <h2>Creators</h2>
+                <button class="btn-add" onclick="openCreateCreatorModal()">+ Ny creator</button>
+            </div>
+            <div class="creators-list" id="creators-list">
+                <p class="loading">Laddar...</p>
+            </div>
+        </div>
+
+        <!-- Decks list -->
+        <div class="admin-section">
+            <div class="section-header">
+                <h2>Kortlekar</h2>
+            </div>
+            <div class="decks-list" id="decks-list">
+                <p class="loading">Laddar...</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Modal for creating/editing creator -->
+    <div class="modal-overlay" id="creator-modal">
+        <div class="modal">
+            <h3 id="creator-modal-title">Ny creator</h3>
+            <div class="form-group">
+                <label for="creator-name-input">Namn</label>
+                <input type="text" id="creator-name-input" placeholder="Creatorns namn">
+            </div>
+            <div class="form-group">
+                <label for="creator-password-input">Lösenord</label>
+                <input type="password" id="creator-password-input" placeholder="Lösenord för inloggning">
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn secondary" onclick="closeCreatorModal()">Avbryt</button>
+                <button class="modal-btn primary" onclick="saveCreator()">Spara</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for confirming creator deletion -->
+    <div class="modal-overlay" id="delete-creator-modal">
+        <div class="modal">
+            <h3>Ta bort creator</h3>
+            <p style="color: #666; margin-bottom: 15px;" id="delete-creator-text"></p>
+            <div class="modal-buttons">
+                <button class="modal-btn secondary" onclick="closeDeleteCreatorModal()">Avbryt</button>
+                <button class="modal-btn danger" onclick="confirmDeleteCreator()">Ta bort</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for confirming deck deletion -->
+    <div class="modal-overlay" id="delete-deck-modal">
+        <div class="modal">
+            <h3>Ta bort kortlek</h3>
+            <p style="color: #666; margin-bottom: 15px;" id="delete-deck-text"></p>
+            <div class="modal-buttons">
+                <button class="modal-btn secondary" onclick="closeDeleteDeckModal()">Avbryt</button>
+                <button class="modal-btn danger" onclick="confirmDeleteDeck()">Ta bort</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+    <!-- App scripts -->
+    <script src="firebase-config.js"></script>
+    <script src="admin.js"></script>
+</body>
+</html>

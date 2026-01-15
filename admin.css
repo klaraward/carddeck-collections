@@ -1,0 +1,243 @@
+/* Admin page specific styles */
+
+.admin-content {
+    width: 100%;
+    max-width: 600px;
+    margin: 20px auto;
+}
+
+.admin-section {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.section-header h2 {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 1.2rem;
+}
+
+.btn-add {
+    padding: 8px 16px;
+    background: #367b62;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+}
+
+.btn-add:hover {
+    background: #2d6652;
+}
+
+/* Creators list */
+.creators-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.creator-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    transition: background 0.2s;
+}
+
+.creator-item:hover {
+    background: #f0f1f2;
+}
+
+.creator-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.creator-name {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.creator-decks {
+    font-size: 0.8rem;
+    color: #666;
+}
+
+.creator-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-edit, .btn-delete {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: background 0.2s;
+}
+
+.btn-edit {
+    background: #e9ecef;
+    color: #495057;
+}
+
+.btn-edit:hover {
+    background: #dee2e6;
+}
+
+.btn-delete {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.btn-delete:hover {
+    background: #f1b0b7;
+}
+
+/* Messages */
+.empty-message, .loading, .error-message {
+    text-align: center;
+    padding: 20px;
+    color: #666;
+}
+
+.error-message {
+    color: #dc3545;
+}
+
+/* Form styles in admin */
+.admin-content .form-group {
+    margin-bottom: 15px;
+}
+
+.admin-content .form-group label {
+    display: block;
+    margin-bottom: 5px;
+    color: #666;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.admin-content .form-group input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+}
+
+.admin-content .form-group input:focus {
+    outline: none;
+    border-color: #367b62;
+}
+
+/* Decks list */
+.decks-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.deck-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 15px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    transition: background 0.2s;
+}
+
+.deck-item:hover {
+    background: #f0f1f2;
+}
+
+.deck-icon {
+    font-size: 1.5rem;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.deck-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.deck-name {
+    font-weight: 600;
+    color: #2c3e50;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.deck-meta {
+    font-size: 0.8rem;
+    color: #666;
+}
+
+.deck-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.btn-view {
+    padding: 6px 10px;
+    background: #e9ecef;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    text-decoration: none;
+    transition: background 0.2s;
+}
+
+.btn-view:hover {
+    background: #dee2e6;
+}
+
+.public-badge {
+    font-size: 0.7rem;
+    background: #d4edda;
+    color: #155724;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+.private-badge {
+    font-size: 0.7rem;
+    background: #ffc107;
+    color: #856404;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 500;
+}
