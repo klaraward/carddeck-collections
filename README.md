@@ -4,16 +4,16 @@ En interaktiv webbapp för att visa och dra kort från olika kortlekar. Perfekt 
 
 **Live demo:** https://klaraward.github.io/carddeck-collections/
 
-> **OBS:** Om repot är privat måste du antingen göra det publikt eller ha GitHub Pro/Team för att GitHub Pages ska fungera.
-
 ## Funktioner
 
 - **Flera kortlekar** - Stöd för flera olika kortlekar, varje med egen design
 - **Dra kort** - Slumpa eller dra kort i ordning
 - **Favoriter** - Markera kort med hjärta för snabb åtkomst
 - **Samlingar** - Skapa egna samlingar av kort
-- **Konfigurerbar design** - Varje kortlek kan ha egen bakgrundsfärg och textfärg
+- **Konfigurerbar design** - Varje kortlek kan ha egen bakgrundsfärg, textfärg och ikon
 - **Publika/privata lekar** - Kortlekar kan vara publika (visas i listan) eller dolda (kräver direktlänk)
+- **Creator-system** - Creators kan logga in och hantera sina egna kortlekar
+- **Admin-panel** - Administratör kan hantera creators och alla kortlekar
 
 ## Användning
 
@@ -23,12 +23,20 @@ En interaktiv webbapp för att visa och dra kort från olika kortlekar. Perfekt 
 4. Använd hjärtat för att favoritmarkera kort
 5. Skapa egna samlingar via +-knappen
 
-## Skapa nya kortlekar
+## För Creators
 
-1. Gå till `creator.html`
-2. Ange admin-lösenord
-3. Fyll i kortlekens uppgifter (ID, namn, färger, ikon)
+1. Be admin att skapa ett creator-konto åt dig
+2. Gå till `creator.html` och logga in med ditt namn och lösenord
+3. Se dina befintliga kortlekar eller skapa nya
+4. Redigera eller ta bort dina kortlekar
+
+### Skapa en kortlek
+
+1. Klicka "+ Ny kortlek"
+2. Fyll i ID (används i URL), namn, undertitel
+3. Välj ikon, bakgrundsfärg och textfärg
 4. Ladda upp en CSV-fil med kort
+5. Välj om kortleken ska vara publik eller privat
 
 ### CSV-format
 
@@ -39,9 +47,16 @@ Andning,🌬️,Djupandning,"Andas in i 4 sekunder, ut i 8 sekunder","Fokusera p
 
 Se `example-breakfast.csv` för ett exempel.
 
+## För Administratörer
+
+1. Gå till `admin.html`
+2. Ange admin-lösenordet
+3. Hantera creators (skapa, redigera, ta bort)
+4. Se och ta bort kortlekar
+
 ## Firestore-struktur
 
-Kortlekar lagras i Firestore under `decks`-collectionen:
+### Kortlekar (`decks`)
 
 ```javascript
 {
@@ -50,7 +65,11 @@ Kortlekar lagras i Firestore under `decks`-collectionen:
   icon: "🎴",
   backgroundColor: "linear-gradient(135deg, #669e6a 0%, #367b62 100%)",
   textColor: "#ffffff",
-  public: true,  // true = visas i listan
+  public: true,
+  creatorId: "abc123",
+  creatorName: "Anna",
+  createdAt: "2024-01-15T10:00:00.000Z",
+  updatedAt: "2024-01-15T12:00:00.000Z",
   cards: [
     {
       category: "Kategori",
@@ -63,11 +82,22 @@ Kortlekar lagras i Firestore under `decks`-collectionen:
 }
 ```
 
-Admin-lösenordet lagras i `settings/admin`:
+### Creators (`creators`)
 
 ```javascript
 {
-  password: "ditt-lösenord"
+  name: "Anna",
+  password: "creator-lösenord",
+  deckCount: 3,
+  createdAt: "2024-01-10T08:00:00.000Z"
+}
+```
+
+### Admin-inställningar (`settings/admin`)
+
+```javascript
+{
+  password: "admin-lösenord"
 }
 ```
 
@@ -85,14 +115,17 @@ Admin-lösenordet lagras i `settings/admin`:
 
 ```
 ├── index.html          # Huvudsida för att visa/spela kortlekar
-├── creator.html        # Admin-sida för att skapa kortlekar
+├── creator.html        # Creator-sida för att hantera egna kortlekar
+├── admin.html          # Admin-sida för att hantera creators och kortlekar
 ├── tests.html          # Enhetstester
 ├── app.js              # Huvudlogik för kortspelet
-├── creator.js          # Logik för att skapa kortlekar
+├── creator.js          # Logik för creator-sidan
+├── admin.js            # Logik för admin-sidan
 ├── icons.js            # Ikoner/emojis
 ├── firebase-config.js  # Firebase-konfiguration
 ├── styles.css          # Huvudstilar
 ├── creator.css         # Stilar för creator-sidan
+├── admin.css           # Stilar för admin-sidan
 ├── decks/              # Lokala JSON-filer (backup/exempel)
 └── example-*.csv       # Exempel på CSV-filer
 ```
@@ -101,7 +134,8 @@ Admin-lösenordet lagras i `settings/admin`:
 
 1. Klona repot
 2. Konfigurera Firebase i `firebase-config.js`
-3. Öppna `index.html` i en webbläsare (eller använd en lokal server)
+3. Skapa `settings/admin` i Firestore med ett `password`-fält
+4. Öppna `index.html` i en webbläsare (eller använd en lokal server)
 
 ## Licens
 
