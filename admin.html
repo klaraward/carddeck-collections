@@ -12,15 +12,22 @@
     <h1>Admin</h1>
     <p class="subtitle">Hantera creators och kortlekar</p>
 
-    <!-- Admin password modal -->
+    <!-- Admin login modal -->
     <div class="modal-overlay active" id="admin-password-modal">
         <div class="modal">
-            <h3>Admin-lösenord</h3>
-            <p style="color: #666; margin-bottom: 15px; font-size: 0.9rem;">Ange lösenord för att komma åt admin</p>
-            <input type="password" id="admin-password-input" placeholder="Lösenord">
+            <h3>Admin-inloggning</h3>
+            <p style="color: #666; margin-bottom: 15px; font-size: 0.9rem;">Logga in med admin-konto</p>
+            <div class="form-group">
+                <label for="admin-email-input">E-post</label>
+                <input type="email" id="admin-email-input" placeholder="admin@example.com">
+            </div>
+            <div class="form-group">
+                <label for="admin-password-input">Lösenord</label>
+                <input type="password" id="admin-password-input" placeholder="Lösenord">
+            </div>
             <div class="modal-buttons">
                 <a href="index.html" class="modal-btn secondary">Avbryt</a>
-                <button class="modal-btn primary" onclick="verifyAdminPassword()">Logga in</button>
+                <button class="modal-btn primary" onclick="loginAdmin()">Logga in</button>
             </div>
         </div>
     </div>
@@ -51,7 +58,7 @@
 
     </div>
 
-    <!-- Modal for creating/editing creator -->
+    <!-- Modal for creating creator -->
     <div class="modal-overlay" id="creator-modal">
         <div class="modal">
             <h3 id="creator-modal-title">Ny creator</h3>
@@ -60,12 +67,16 @@
                 <input type="text" id="creator-name-input" placeholder="Creatorns namn">
             </div>
             <div class="form-group">
+                <label for="creator-email-input">E-post</label>
+                <input type="email" id="creator-email-input" placeholder="creator@example.com">
+            </div>
+            <div class="form-group">
                 <label for="creator-password-input">Lösenord</label>
-                <input type="password" id="creator-password-input" placeholder="Lösenord för inloggning">
+                <input type="password" id="creator-password-input" placeholder="Minst 6 tecken">
             </div>
             <div class="modal-buttons">
                 <button class="modal-btn secondary" onclick="closeCreatorModal()">Avbryt</button>
-                <button class="modal-btn primary" onclick="saveCreator()">Spara</button>
+                <button class="modal-btn primary" onclick="saveCreator()">Skapa</button>
             </div>
         </div>
     </div>
@@ -97,6 +108,8 @@
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-functions-compat.js"></script>
 
     <!-- App scripts -->
     <script src="firebase-config.js"></script>

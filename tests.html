@@ -401,6 +401,179 @@ X,Y,Z,W,V`;
             });
         });
 
+        // Valideringsfunktioner (från creator.js/admin.js)
+        function isValidDeckId(deckId) {
+            return /^[a-z0-9-]+$/.test(deckId);
+        }
+
+        function isValidEmail(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        }
+
+        function isValidPassword(password) {
+            return password && password.length >= 6;
+        }
+
+        function isValidHexColor(hex) {
+            return /^#[0-9a-fA-F]{6}$/.test(hex);
+        }
+
+        function generateGradient(baseColor) {
+            const darkened = adjustColor(baseColor, -20);
+            return `linear-gradient(135deg, ${baseColor} 0%, ${darkened} 100%)`;
+        }
+
+        // =====================================================
+        // NYA TESTER
+        // =====================================================
+
+        describe('isValidDeckId', () => {
+            it('ska godkänna giltigt deck-ID med små bokstäver', () => {
+                expect(isValidDeckId('minlek')).toBeTruthy();
+            });
+
+            it('ska godkänna deck-ID med siffror', () => {
+                expect(isValidDeckId('lek123')).toBeTruthy();
+            });
+
+            it('ska godkänna deck-ID med bindestreck', () => {
+                expect(isValidDeckId('min-kortlek-2024')).toBeTruthy();
+            });
+
+            it('ska avvisa deck-ID med stora bokstäver', () => {
+                expect(isValidDeckId('MinLek')).toBeFalsy();
+            });
+
+            it('ska avvisa deck-ID med mellanslag', () => {
+                expect(isValidDeckId('min lek')).toBeFalsy();
+            });
+
+            it('ska avvisa deck-ID med specialtecken', () => {
+                expect(isValidDeckId('min_lek!')).toBeFalsy();
+            });
+
+            it('ska avvisa deck-ID med svenska tecken', () => {
+                expect(isValidDeckId('minåäölek')).toBeFalsy();
+            });
+
+            it('ska avvisa tom sträng', () => {
+                expect(isValidDeckId('')).toBeFalsy();
+            });
+        });
+
+        describe('isValidEmail', () => {
+            it('ska godkänna giltig e-postadress', () => {
+                expect(isValidEmail('test@example.com')).toBeTruthy();
+            });
+
+            it('ska godkänna e-post med subdomän', () => {
+                expect(isValidEmail('user@mail.example.com')).toBeTruthy();
+            });
+
+            it('ska godkänna e-post med siffror', () => {
+                expect(isValidEmail('user123@test456.se')).toBeTruthy();
+            });
+
+            it('ska godkänna e-post med punkt före @', () => {
+                expect(isValidEmail('first.last@example.com')).toBeTruthy();
+            });
+
+            it('ska avvisa e-post utan @', () => {
+                expect(isValidEmail('testexample.com')).toBeFalsy();
+            });
+
+            it('ska avvisa e-post utan domän', () => {
+                expect(isValidEmail('test@')).toBeFalsy();
+            });
+
+            it('ska avvisa e-post utan användarnamn', () => {
+                expect(isValidEmail('@example.com')).toBeFalsy();
+            });
+
+            it('ska avvisa e-post med mellanslag', () => {
+                expect(isValidEmail('test @example.com')).toBeFalsy();
+            });
+
+            it('ska avvisa tom sträng', () => {
+                expect(isValidEmail('')).toBeFalsy();
+            });
+        });
+
+        describe('isValidPassword', () => {
+            it('ska godkänna lösenord med 6 tecken', () => {
+                expect(isValidPassword('123456')).toBeTruthy();
+            });
+
+            it('ska godkänna lösenord med fler än 6 tecken', () => {
+                expect(isValidPassword('mittlångalösenord')).toBeTruthy();
+            });
+
+            it('ska avvisa lösenord med 5 tecken', () => {
+                expect(isValidPassword('12345')).toBeFalsy();
+            });
+
+            it('ska avvisa tomt lösenord', () => {
+                expect(isValidPassword('')).toBeFalsy();
+            });
+
+            it('ska avvisa null', () => {
+                expect(isValidPassword(null)).toBeFalsy();
+            });
+
+            it('ska avvisa undefined', () => {
+                expect(isValidPassword(undefined)).toBeFalsy();
+            });
+        });
+
+        describe('isValidHexColor', () => {
+            it('ska godkänna giltig hex-färg med #', () => {
+                expect(isValidHexColor('#ff0000')).toBeTruthy();
+            });
+
+            it('ska godkänna hex-färg med stora bokstäver', () => {
+                expect(isValidHexColor('#FF00AA')).toBeTruthy();
+            });
+
+            it('ska godkänna hex-färg med blandade bokstäver', () => {
+                expect(isValidHexColor('#aAbBcC')).toBeTruthy();
+            });
+
+            it('ska avvisa hex-färg utan #', () => {
+                expect(isValidHexColor('ff0000')).toBeFalsy();
+            });
+
+            it('ska avvisa kort hex-färg (3 tecken)', () => {
+                expect(isValidHexColor('#f00')).toBeFalsy();
+            });
+
+            it('ska avvisa för lång hex-färg', () => {
+                expect(isValidHexColor('#ff00001')).toBeFalsy();
+            });
+
+            it('ska avvisa ogiltiga tecken', () => {
+                expect(isValidHexColor('#gggggg')).toBeFalsy();
+            });
+        });
+
+        describe('generateGradient', () => {
+            it('ska generera en giltig gradient-sträng', () => {
+                const result = generateGradient('#669e6a');
+                expect(result).toContain('linear-gradient');
+                expect(result).toContain('#669e6a');
+                expect(result).toContain('135deg');
+            });
+
+            it('ska inkludera mörkare färg i slutet', () => {
+                const result = generateGradient('#ffffff');
+                expect(result).toContain('#ebebeb');
+            });
+
+            it('ska ha korrekt format', () => {
+                const result = generateGradient('#808080');
+                expect(result).toMatch(/^linear-gradient\(135deg, #[0-9a-f]{6} 0%, #[0-9a-f]{6} 100%\)$/);
+            });
+        });
+
         describe('adjustColor', () => {
             it('ska göra en färg mörkare med negativt värde', () => {
                 const result = adjustColor('#ffffff', -20);

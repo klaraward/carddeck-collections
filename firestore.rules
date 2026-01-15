@@ -1,0 +1,21 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Decks - public read, write only via Cloud Functions
+    match /decks/{deckId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Creators - authenticated read, write only via Cloud Functions
+    match /creators/{creatorId} {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
+
+    // Settings - no client access
+    match /settings/{doc} {
+      allow read, write: if false;
+    }
+  }
+}

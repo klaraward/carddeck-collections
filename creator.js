@@ -1,59 +1,80 @@
 // Creator page functionality
 let parsedCsvCards = [];
-let currentCreator = null; // { id, name }
+let currentCreator = null; // { id, name, email }
 let editingDeckId = null;
 let deckToDelete = null;
 
-// Focus on name input on page load
-document.getElementById('creator-name-input').focus();
+// Check auth state on page load
+auth.onAuthStateChanged(async (user) => {
+    if (user) {
+        // User is signed in - load their profile
+        try {
+            const creatorDoc = await db.collection('creators').doc(user.uid).get();
+            if (creatorDoc.exists) {
+                currentCreator = {
+                    id: user.uid,
+                    name: creatorDoc.data().name,
+                    email: user.email
+                };
+                showDashboard();
+            } else {
+                // User exists in Auth but not in creators collection
+                alert('Ditt konto är inte registrerat som creator.');
+                auth.signOut();
+            }
+        } catch (error) {
+            console.error('Error loading creator profile:', error);
+        }
+    } else {
+        // User is signed out - show login
+        showLogin();
+    }
+});
 
-// Creator login
+function showLogin() {
+    document.getElementById('login-modal').classList.add('active');
+    document.getElementById('creator-dashboard').style.display = 'none';
+    document.getElementById('creator-email-input').focus();
+}
+
+function showDashboard() {
+    document.getElementById('login-modal').classList.remove('active');
+    document.getElementById('creator-dashboard').style.display = 'block';
+    document.getElementById('logged-in-name').textContent = currentCreator.name;
+    document.getElementById('creator-subtitle').textContent = 'Hantera dina kortlekar';
+    loadMyDecks();
+}
+
+// Creator login with Firebase Auth
 async function loginCreator() {
-    const name = document.getElementById('creator-name-input').value.trim();
+    const email = document.getElementById('creator-email-input').value.trim();
     const password = document.getElementById('creator-password-input').value;
 
-    if (!name || !password) {
-        alert('Ange både namn och lösenord.');
+    if (!email || !password) {
+        alert('Ange både e-post och lösenord.');
         return;
     }
 
     try {
-        // Find creator by name
-        const snapshot = await db.collection('creators')
-            .where('name', '==', name)
-            .get();
-
-        if (snapshot.empty) {
-            alert('Ingen creator med det namnet hittades.');
-            return;
-        }
-
-        const creatorDoc = snapshot.docs[0];
-        const creatorData = creatorDoc.data();
-
-        if (password !== creatorData.password) {
-            alert('Fel lösenord.');
-            return;
-        }
-
-        // Login successful
-        currentCreator = {
-            id: creatorDoc.id,
-            name: creatorData.name
-        };
-
-        document.getElementById('login-modal').classList.remove('active');
-        document.getElementById('creator-dashboard').style.display = 'block';
-        document.getElementById('logged-in-name').textContent = currentCreator.name;
-        document.getElementById('creator-subtitle').textContent = 'Hantera dina kortlekar';
-
-        // Load creator's decks
-        loadMyDecks();
-
+        await auth.signInWithEmailAndPassword(email, password);
+        // onAuthStateChanged will handle the rest
     } catch (error) {
         console.error('Error logging in:', error);
-        alert('Kunde inte logga in: ' + error.message);
+        if (error.code === 'auth/user-not-found') {
+            alert('Ingen användare med denna e-postadress hittades.');
+        } else if (error.code === 'auth/wrong-password') {
+            alert('Fel lösenord.');
+        } else if (error.code === 'auth/invalid-email') {
+            alert('Ogiltig e-postadress.');
+        } else {
+            alert('Kunde inte logga in: ' + error.message);
+        }
     }
+}
+
+// Logout
+function logoutCreator() {
+    auth.signOut();
 }
 
 // Load creator's decks
@@ -175,7 +196,7 @@ async function editDeck(deckId) {
 }
 
 // Handle Enter key in login modal
-document.getElementById('creator-name-input').addEventListener('keypress', function(e) {
+document.getElementById('creator-email-input').addEventListener('keypress', function(e) {
     if (e.key === 'Enter') {
         document.getElementById('creator-password-input').focus();
     }
@@ -275,6 +296,7 @@ function showCsvPreview(cards) {
     `;
 }
 
+// Save deck via Cloud Function
 async function saveDeck() {
     if (!currentCreator) {
         alert('Du måste vara inloggad för att spara kortlekar.');
@@ -312,39 +334,20 @@ async function saveDeck() {
     }
 
     try {
-        // Check if deck already exists (only for new decks)
-        if (!editingDeckId) {
-            const existing = await db.collection('decks').doc(deckId).get();
-            if (existing.exists) {
-                alert('En kortlek med detta ID finns redan. Välj ett annat ID.');
-                return;
+        const saveDeckFn = functions.httpsCallable('saveDeck');
+        await saveDeckFn({
+            deckId: deckId,
+            isEdit: !!editingDeckId,
+            deckData: {
+                name: name,
+                subtitle: subtitle,
+                icon: icon,
+                backgroundColor: `linear-gradient(135deg, ${color} 0%, ${adjustColor(color, -20)} 100%)`,
+                textColor: textColor,
+                public: isPublic,
+                cards: parsedCsvCards
             }
-        }
-
-        // Build deck data
-        const deckData = {
-            name: name,
-            subtitle: subtitle,
-            icon: icon,
-            backgroundColor: `linear-gradient(135deg, ${color} 0%, ${adjustColor(color, -20)} 100%)`,
-            textColor: textColor,
-            public: isPublic,
-            cards: parsedCsvCards,
-            creatorId: currentCreator.id,
-            creatorName: currentCreator.name,
-            updatedAt: new Date().toISOString()
-        };
-
-        // Only set createdAt for new decks
-        if (!editingDeckId) {
-            deckData.createdAt = new Date().toISOString();
-        }
-
-        // Save to Firestore with creator info
-        await db.collection('decks').doc(deckId).set(deckData, { merge: true });
-
-        // Update creator's deck count
-        await updateCreatorDeckCount(currentCreator.id);
+        });
 
         alert(editingDeckId ? 'Kortleken har uppdaterats!' : 'Kortleken har skapats!');
 
@@ -354,7 +357,8 @@ async function saveDeck() {
 
     } catch (error) {
         console.error('Error saving deck:', error);
-        alert('Kunde inte spara kortleken: ' + error.message);
+        const message = error.message || error.code || 'Okänt fel';
+        alert('Kunde inte spara kortleken: ' + message);
     }
 }
 
@@ -370,34 +374,20 @@ function closeDeleteDeckModal() {
     deckToDelete = null;
 }
 
+// Delete deck via Cloud Function
 async function confirmDeleteDeck() {
     if (!deckToDelete) return;
 
     try {
-        await db.collection('decks').doc(deckToDelete).delete();
-
-        // Update creator's deck count
-        await updateCreatorDeckCount(currentCreator.id);
+        const deleteDeckFn = functions.httpsCallable('deleteDeck');
+        await deleteDeckFn({ deckId: deckToDelete });
 
         closeDeleteDeckModal();
         loadMyDecks();
     } catch (error) {
         console.error('Error deleting deck:', error);
-        alert('Kunde inte ta bort kortleken: ' + error.message);
-    }
-}
-
-async function updateCreatorDeckCount(creatorId) {
-    try {
-        const snapshot = await db.collection('decks')
-            .where('creatorId', '==', creatorId)
-            .get();
-
-        await db.collection('creators').doc(creatorId).update({
-            deckCount: snapshot.size
-        });
-    } catch (error) {
-        console.error('Error updating deck count:', error);
+        const message = error.message || error.code || 'Okänt fel';
+        alert('Kunde inte ta bort kortleken: ' + message);
     }
 }
 

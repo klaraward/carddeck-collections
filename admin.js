@@ -1,43 +1,80 @@
 // Admin page functionality
-let editingCreatorId = null;
 let creatorToDelete = null;
 let deckToDelete = null;
 
-// Show password modal on page load
-document.getElementById('admin-password-input').focus();
+// Check auth state on page load
+auth.onAuthStateChanged(async (user) => {
+    if (user) {
+        // User is signed in - check if admin
+        try {
+            const creatorDoc = await db.collection('creators').doc(user.uid).get();
+            if (creatorDoc.exists && creatorDoc.data().isAdmin === true) {
+                showAdminContent();
+            } else {
+                alert('Du har inte admin-behörighet.');
+                auth.signOut();
+            }
+        } catch (error) {
+            console.error('Error checking admin status:', error);
+            alert('Kunde inte verifiera admin-behörighet.');
+            auth.signOut();
+        }
+    } else {
+        // User is signed out - show login
+        showLoginModal();
+    }
+});
 
-// Admin password verification
-async function verifyAdminPassword() {
-    const enteredPassword = document.getElementById('admin-password-input').value;
+function showLoginModal() {
+    document.getElementById('admin-password-modal').classList.add('active');
+    document.getElementById('admin-content').style.display = 'none';
+    document.getElementById('admin-email-input').focus();
+}
+
+function showAdminContent() {
+    document.getElementById('admin-password-modal').classList.remove('active');
+    document.getElementById('admin-content').style.display = 'block';
+    loadCreators();
+    loadDecks();
+}
+
+// Admin login with Firebase Auth
+async function loginAdmin() {
+    const email = document.getElementById('admin-email-input').value.trim();
+    const password = document.getElementById('admin-password-input').value;
+
+    if (!email || !password) {
+        alert('Ange både e-post och lösenord.');
+        return;
+    }
 
     try {
-        const doc = await db.collection('settings').doc('admin').get();
-
-        if (!doc.exists) {
-            alert('Admin-inställningar saknas i databasen.');
-            return;
-        }
-
-        const adminSettings = doc.data();
-
-        if (enteredPassword === adminSettings.password) {
-            document.getElementById('admin-password-modal').classList.remove('active');
-            document.getElementById('admin-content').style.display = 'block';
-            loadCreators();
-            loadDecks();
-        } else {
-            alert('Fel lösenord.');
-        }
+        await auth.signInWithEmailAndPassword(email, password);
+        // onAuthStateChanged will handle the rest
     } catch (error) {
-        console.error('Error verifying password:', error);
-        alert('Kunde inte verifiera lösenordet.');
+        console.error('Error logging in:', error);
+        if (error.code === 'auth/user-not-found') {
+            alert('Ingen användare med denna e-postadress hittades.');
+        } else if (error.code === 'auth/wrong-password') {
+            alert('Fel lösenord.');
+        } else if (error.code === 'auth/invalid-email') {
+            alert('Ogiltig e-postadress.');
+        } else {
+            alert('Kunde inte logga in: ' + error.message);
+        }
     }
 }
 
-// Handle Enter key in password modal
+// Handle Enter key in login modal
+document.getElementById('admin-email-input').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        document.getElementById('admin-password-input').focus();
+    }
+});
+
 document.getElementById('admin-password-input').addEventListener('keypress', function(e) {
     if (e.key === 'Enter') {
-        verifyAdminPassword();
+        loginAdmin();
     }
 });
 
@@ -57,14 +94,15 @@ async function loadCreators() {
         snapshot.forEach(doc => {
             const creator = doc.data();
             const deckCount = creator.deckCount || 0;
+            const adminBadge = creator.isAdmin ? '<span class="admin-badge">Admin</span>' : '';
             html += `
                 <div class="creator-item">
                     <div class="creator-info">
-                        <span class="creator-name">${creator.name}</span>
+                        <span class="creator-name">${creator.name} ${adminBadge}</span>
+                        <span class="creator-email">${creator.email || ''}</span>
                         <span class="creator-decks">${deckCount} kortlek${deckCount !== 1 ? 'ar' : ''}</span>
                     </div>
                     <div class="creator-actions">
-                        <button class="btn-edit" onclick="openEditCreatorModal('${doc.id}', '${creator.name}')">Redigera</button>
                         <button class="btn-delete" onclick="openDeleteCreatorModal('${doc.id}', '${creator.name}')">Ta bort</button>
                     </div>
                 </div>
@@ -78,34 +116,24 @@ async function loadCreators() {
     }
 }
 
-// Create/Edit creator modal
+// Create creator modal
 function openCreateCreatorModal() {
-    editingCreatorId = null;
     document.getElementById('creator-modal-title').textContent = 'Ny creator';
     document.getElementById('creator-name-input').value = '';
+    document.getElementById('creator-email-input').value = '';
     document.getElementById('creator-password-input').value = '';
-    document.getElementById('creator-modal').classList.add('active');
-    document.getElementById('creator-name-input').focus();
-}
-
-function openEditCreatorModal(id, name) {
-    editingCreatorId = id;
-    document.getElementById('creator-modal-title').textContent = 'Redigera creator';
-    document.getElementById('creator-name-input').value = name;
-    document.getElementById('creator-password-input').value = '';
-    document.getElementById('creator-password-input').placeholder = 'Lämna tomt för att behålla';
     document.getElementById('creator-modal').classList.add('active');
     document.getElementById('creator-name-input').focus();
 }
 
 function closeCreatorModal() {
     document.getElementById('creator-modal').classList.remove('active');
-    document.getElementById('creator-password-input').placeholder = 'Lösenord för inloggning';
-    editingCreatorId = null;
 }
 
+// Create creator via Cloud Function
 async function saveCreator() {
     const name = document.getElementById('creator-name-input').value.trim();
+    const email = document.getElementById('creator-email-input').value.trim();
     const password = document.getElementById('creator-password-input').value;
 
     if (!name) {
@@ -113,34 +141,31 @@ async function saveCreator() {
         return;
     }
 
-    if (!editingCreatorId && !password) {
-        alert('Du måste ange ett lösenord för nya creators.');
+    if (!email) {
+        alert('Du måste ange en e-postadress.');
+        return;
+    }
+
+    if (!password || password.length < 6) {
+        alert('Lösenordet måste vara minst 6 tecken.');
         return;
     }
 
     try {
-        if (editingCreatorId) {
-            // Update existing creator
-            const updateData = { name: name };
-            if (password) {
-                updateData.password = password;
-            }
-            await db.collection('creators').doc(editingCreatorId).update(updateData);
-        } else {
-            // Create new creator
-            await db.collection('creators').add({
-                name: name,
-                password: password,
-                deckCount: 0,
-                createdAt: new Date().toISOString()
-            });
-        }
+        const createCreatorFn = functions.httpsCallable('createCreator');
+        await createCreatorFn({
+            name: name,
+            email: email,
+            password: password
+        });
 
+        alert('Creator skapad!');
         closeCreatorModal();
         loadCreators();
     } catch (error) {
-        console.error('Error saving creator:', error);
-        alert('Kunde inte spara creator: ' + error.message);
+        console.error('Error creating creator:', error);
+        const message = error.message || error.code || 'Okänt fel';
+        alert('Kunde inte skapa creator: ' + message);
     }
 }
 
@@ -156,21 +181,31 @@ function closeDeleteCreatorModal() {
     creatorToDelete = null;
 }
 
+// Delete creator via Cloud Function
 async function confirmDeleteCreator() {
     if (!creatorToDelete) return;
 
     try {
-        await db.collection('creators').doc(creatorToDelete).delete();
+        const deleteCreatorFn = functions.httpsCallable('deleteCreator');
+        await deleteCreatorFn({ creatorId: creatorToDelete });
+
         closeDeleteCreatorModal();
         loadCreators();
     } catch (error) {
         console.error('Error deleting creator:', error);
-        alert('Kunde inte ta bort creator: ' + error.message);
+        const message = error.message || error.code || 'Okänt fel';
+        alert('Kunde inte ta bort creator: ' + message);
     }
 }
 
 // Handle Enter key in creator modal
 document.getElementById('creator-name-input').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        document.getElementById('creator-email-input').focus();
+    }
+});
+
+document.getElementById('creator-email-input').addEventListener('keypress', function(e) {
     if (e.key === 'Enter') {
         document.getElementById('creator-password-input').focus();
     }
@@ -234,33 +269,20 @@ function closeDeleteDeckModal() {
     deckToDelete = null;
 }
 
+// Delete deck via Cloud Function
 async function confirmDeleteDeck() {
     if (!deckToDelete) return;
 
     try {
-        // Get deck info to update creator's deck count
-        const deckDoc = await db.collection('decks').doc(deckToDelete).get();
-        const creatorId = deckDoc.exists ? deckDoc.data().creatorId : null;
-
-        // Delete the deck
-        await db.collection('decks').doc(deckToDelete).delete();
-
-        // Update creator's deck count if we know the creator
-        if (creatorId) {
-            const snapshot = await db.collection('decks')
-                .where('creatorId', '==', creatorId)
-                .get();
-
-            await db.collection('creators').doc(creatorId).update({
-                deckCount: snapshot.size
-            });
-        }
+        const deleteDeckFn = functions.httpsCallable('deleteDeck');
+        await deleteDeckFn({ deckId: deckToDelete });
 
         closeDeleteDeckModal();
         loadDecks();
         loadCreators(); // Refresh to update deck counts
     } catch (error) {
         console.error('Error deleting deck:', error);
-        alert('Kunde inte ta bort kortleken: ' + error.message);
+        const message = error.message || error.code || 'Okänt fel';
+        alert('Kunde inte ta bort kortleken: ' + message);
     }
 }

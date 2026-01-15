@@ -12,3 +12,9 @@ const firebaseConfig = {
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
+const auth = firebase.auth();
+const functions = firebase.functions();
+
+// Uncomment for local development with emulators
+// functions.useEmulator('localhost', 5001);
+// auth.useEmulator('http://localhost:9099');
