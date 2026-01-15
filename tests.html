@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhetstester - Kortlek</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        h1 { color: #2c3e50; }
+        .test-suite {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-suite h2 {
+            margin-top: 0;
+            color: #34495e;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        .test {
+            padding: 8px 12px;
+            margin: 5px 0;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .test.pass { background: #d4edda; color: #155724; }
+        .test.fail { background: #f8d7da; color: #721c24; }
+        .summary {
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        .summary.all-pass { background: #28a745; color: white; }
+        .summary.has-fail { background: #dc3545; color: white; }
+        .error-msg {
+            font-size: 0.85rem;
+            margin-top: 5px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>Enhetstester</h1>
+    <div id="results"></div>
+    <div id="summary"></div>
+
+    <script>
+        // Simple test framework
+        let tests = [];
+        let passed = 0;
+        let failed = 0;
+
+        function describe(suiteName, fn) {
+            tests.push({ type: 'suite', name: suiteName });
+            fn();
+        }
+
+        function it(testName, fn) {
+            try {
+                fn();
+                tests.push({ type: 'test', name: testName, pass: true });
+                passed++;
+            } catch (error) {
+                tests.push({ type: 'test', name: testName, pass: false, error: error.message });
+                failed++;
+            }
+        }
+
+        function expect(actual) {
+            return {
+                toBe(expected) {
+                    if (actual !== expected) {
+                        throw new Error(`Förväntat ${JSON.stringify(expected)}, fick ${JSON.stringify(actual)}`);
+                    }
+                },
+                toEqual(expected) {
+                    if (JSON.stringify(actual) !== JSON.stringify(expected)) {
+                        throw new Error(`Förväntat ${JSON.stringify(expected)}, fick ${JSON.stringify(actual)}`);
+                    }
+                },
+                toBeGreaterThan(expected) {
+                    if (!(actual > expected)) {
+                        throw new Error(`Förväntat ${actual} > ${expected}`);
+                    }
+                },
+                toBeLessThan(expected) {
+                    if (!(actual < expected)) {
+                        throw new Error(`Förväntat ${actual} < ${expected}`);
+                    }
+                },
+                toContain(expected) {
+                    if (!actual.includes(expected)) {
+                        throw new Error(`Förväntat att ${JSON.stringify(actual)} innehåller ${JSON.stringify(expected)}`);
+                    }
+                },
+                toHaveLength(expected) {
+                    if (actual.length !== expected) {
+                        throw new Error(`Förväntat längd ${expected}, fick ${actual.length}`);
+                    }
+                },
+                toBeTruthy() {
+                    if (!actual) {
+                        throw new Error(`Förväntat truthy värde, fick ${actual}`);
+                    }
+                },
+                toBeFalsy() {
+                    if (actual) {
+                        throw new Error(`Förväntat falsy värde, fick ${actual}`);
+                    }
+                },
+                toMatch(regex) {
+                    if (!regex.test(actual)) {
+                        throw new Error(`Förväntat att ${actual} matchar ${regex}`);
+                    }
+                }
+            };
+        }
+
+        // =====================================================
+        // Funktioner att testa (kopierade från app.js/creator.js)
+        // =====================================================
+
+        // Från app.js
+        function getCardId(card) {
+            return card.title;
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // Mock för collections (används av isInCollection)
+        let collections = {};
+
+        function isInCollection(card, collectionId) {
+            if (!collections[collectionId]) return false;
+            return collections[collectionId].cards.includes(getCardId(card));
+        }
+
+        // Mock för cards
+        let cards = [];
+
+        function getCollectionCards(collectionId) {
+            if (!collections[collectionId]) return [];
+            return cards.filter(card => isInCollection(card, collectionId));
+        }
+
+        const FAVORITES_ID = 'favorites';
+
+        function isFavorite(card) {
+            return isInCollection(card, FAVORITES_ID);
+        }
+
+        // Från creator.js
+        function parseCSVLine(line) {
+            const fields = [];
+            let current = '';
+            let inQuotes = false;
+
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    fields.push(current);
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            fields.push(current);
+
+            return fields;
+        }
+
+        function parseCSV(csvText) {
+            const lines = csvText.split('\n').filter(line => line.trim());
+            const cards = [];
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+
+                if (i === 0 && line.toLowerCase().includes('category')) {
+                    continue;
+                }
+
+                const fields = parseCSVLine(line);
+
+                if (fields.length >= 5) {
+                    cards.push({
+                        category: fields[0].trim(),
+                        icon: fields[1].trim(),
+                        title: fields[2].trim(),
+                        description: fields[3].trim(),
+                        tip: fields[4].trim()
+                    });
+                }
+            }
+
+            return cards;
+        }
+
+        function adjustColor(hex, percent) {
+            const num = parseInt(hex.replace('#', ''), 16);
+            const r = Math.min(255, Math.max(0, (num >> 16) + percent));
+            const g = Math.min(255, Math.max(0, ((num >> 8) & 0x00FF) + percent));
+            const b = Math.min(255, Math.max(0, (num & 0x0000FF) + percent));
+            return '#' + (0x1000000 + (r << 16) + (g << 8) + b).toString(16).slice(1);
+        }
+
+        // =====================================================
+        // TESTER
+        // =====================================================
+
+        describe('getCardId', () => {
+            it('ska returnera kortets titel som ID', () => {
+                const card = { title: 'Test Kort', description: 'En beskrivning' };
+                expect(getCardId(card)).toBe('Test Kort');
+            });
+
+            it('ska hantera kort med specialtecken i titeln', () => {
+                const card = { title: 'Kort med åäö & tecken!', description: '' };
+                expect(getCardId(card)).toBe('Kort med åäö & tecken!');
+            });
+        });
+
+        describe('shuffleArray', () => {
+            it('ska behålla samma längd efter blandning', () => {
+                const arr = [1, 2, 3, 4, 5];
+                const shuffled = shuffleArray([...arr]);
+                expect(shuffled).toHaveLength(5);
+            });
+
+            it('ska behålla samma element efter blandning', () => {
+                const arr = [1, 2, 3, 4, 5];
+                const shuffled = shuffleArray([...arr]);
+                expect(shuffled.sort()).toEqual([1, 2, 3, 4, 5]);
+            });
+
+            it('ska returnera samma array (muterad)', () => {
+                const arr = [1, 2, 3];
+                const result = shuffleArray(arr);
+                expect(result).toBe(arr);
+            });
+
+            it('ska hantera tom array', () => {
+                const arr = [];
+                const shuffled = shuffleArray(arr);
+                expect(shuffled).toHaveLength(0);
+            });
+
+            it('ska hantera array med ett element', () => {
+                const arr = [42];
+                const shuffled = shuffleArray(arr);
+                expect(shuffled).toEqual([42]);
+            });
+        });
+
+        describe('isInCollection', () => {
+            it('ska returnera false om samlingen inte finns', () => {
+                collections = {};
+                const card = { title: 'Kort 1' };
+                expect(isInCollection(card, 'nonexistent')).toBeFalsy();
+            });
+
+            it('ska returnera true om kortet finns i samlingen', () => {
+                collections = { 'col1': { name: 'Samling', cards: ['Kort 1', 'Kort 2'] } };
+                const card = { title: 'Kort 1' };
+                expect(isInCollection(card, 'col1')).toBeTruthy();
+            });
+
+            it('ska returnera false om kortet inte finns i samlingen', () => {
+                collections = { 'col1': { name: 'Samling', cards: ['Kort 2'] } };
+                const card = { title: 'Kort 1' };
+                expect(isInCollection(card, 'col1')).toBeFalsy();
+            });
+        });
+
+        describe('getCollectionCards', () => {
+            it('ska returnera tom array om samlingen inte finns', () => {
+                collections = {};
+                cards = [{ title: 'Kort 1' }];
+                expect(getCollectionCards('nonexistent')).toEqual([]);
+            });
+
+            it('ska returnera kort som finns i samlingen', () => {
+                cards = [
+                    { title: 'Kort 1', category: 'A' },
+                    { title: 'Kort 2', category: 'B' },
+                    { title: 'Kort 3', category: 'A' }
+                ];
+                collections = { 'col1': { name: 'Samling', cards: ['Kort 1', 'Kort 3'] } };
+                const result = getCollectionCards('col1');
+                expect(result).toHaveLength(2);
+                expect(result[0].title).toBe('Kort 1');
+                expect(result[1].title).toBe('Kort 3');
+            });
+        });
+
+        describe('isFavorite', () => {
+            it('ska returnera false om favoriter inte finns', () => {
+                collections = {};
+                const card = { title: 'Kort 1' };
+                expect(isFavorite(card)).toBeFalsy();
+            });
+
+            it('ska returnera true om kortet är en favorit', () => {
+                collections = { 'favorites': { name: 'Favoriter', cards: ['Kort 1'] } };
+                const card = { title: 'Kort 1' };
+                expect(isFavorite(card)).toBeTruthy();
+            });
+        });
+
+        describe('parseCSVLine', () => {
+            it('ska parsa enkel CSV-rad', () => {
+                const line = 'a,b,c,d,e';
+                expect(parseCSVLine(line)).toEqual(['a', 'b', 'c', 'd', 'e']);
+            });
+
+            it('ska hantera citerade fält med kommatecken', () => {
+                const line = 'kategori,ikon,"titel, med komma",beskrivning,tips';
+                const result = parseCSVLine(line);
+                expect(result[2]).toBe('titel, med komma');
+            });
+
+            it('ska hantera tomma fält', () => {
+                const line = 'a,,c,,e';
+                expect(parseCSVLine(line)).toEqual(['a', '', 'c', '', 'e']);
+            });
+
+            it('ska hantera citerade fält med flera kommatecken', () => {
+                const line = '"a,b,c",d,e';
+                const result = parseCSVLine(line);
+                expect(result[0]).toBe('a,b,c');
+            });
+        });
+
+        describe('parseCSV', () => {
+            it('ska parsa CSV-text till kort-objekt', () => {
+                const csv = 'Kategori,Ikon,Titel,Beskrivning,Tips';
+                const result = parseCSV(csv);
+                expect(result).toHaveLength(1);
+                expect(result[0].category).toBe('Kategori');
+                expect(result[0].title).toBe('Titel');
+            });
+
+            it('ska hoppa över header-rad', () => {
+                const csv = `category,icon,title,description,tip
+Andning,🌬️,Djupandning,Andas djupt,Slappna av`;
+                const result = parseCSV(csv);
+                expect(result).toHaveLength(1);
+                expect(result[0].category).toBe('Andning');
+            });
+
+            it('ska hantera flera rader', () => {
+                const csv = `A,1,Kort1,Besk1,Tips1
+B,2,Kort2,Besk2,Tips2
+C,3,Kort3,Besk3,Tips3`;
+                const result = parseCSV(csv);
+                expect(result).toHaveLength(3);
+            });
+
+            it('ska trimma whitespace', () => {
+                const csv = '  Kategori  ,  Ikon  ,  Titel  ,  Beskrivning  ,  Tips  ';
+                const result = parseCSV(csv);
+                expect(result[0].category).toBe('Kategori');
+                expect(result[0].title).toBe('Titel');
+            });
+
+            it('ska ignorera rader med för få fält', () => {
+                const csv = `A,B,C,D,E
+X,Y,Z`;
+                const result = parseCSV(csv);
+                expect(result).toHaveLength(1);
+            });
+
+            it('ska hantera tomma rader', () => {
+                const csv = `A,B,C,D,E
+
+X,Y,Z,W,V`;
+                const result = parseCSV(csv);
+                expect(result).toHaveLength(2);
+            });
+        });
+
+        describe('adjustColor', () => {
+            it('ska göra en färg mörkare med negativt värde', () => {
+                const result = adjustColor('#ffffff', -20);
+                expect(result).toBe('#ebebeb');
+            });
+
+            it('ska göra en färg ljusare med positivt värde', () => {
+                const result = adjustColor('#000000', 20);
+                expect(result).toBe('#141414');
+            });
+
+            it('ska inte gå under 0', () => {
+                const result = adjustColor('#000000', -50);
+                expect(result).toBe('#000000');
+            });
+
+            it('ska inte gå över 255', () => {
+                const result = adjustColor('#ffffff', 50);
+                expect(result).toBe('#ffffff');
+            });
+
+            it('ska hantera färger utan #', () => {
+                const result = adjustColor('669e6a', -20);
+                expect(result).toMatch(/^#[0-9a-f]{6}$/);
+            });
+
+            it('ska justera alla RGB-kanaler', () => {
+                const result = adjustColor('#808080', -16);
+                expect(result).toBe('#707070');
+            });
+        });
+
+        // =====================================================
+        // Rendera resultat
+        // =====================================================
+
+        function renderResults() {
+            const resultsDiv = document.getElementById('results');
+            let html = '';
+            let currentSuite = '';
+
+            tests.forEach(test => {
+                if (test.type === 'suite') {
+                    if (currentSuite) html += '</div>';
+                    html += `<div class="test-suite"><h2>${test.name}</h2>`;
+                    currentSuite = test.name;
+                } else {
+                    html += `
+                        <div class="test ${test.pass ? 'pass' : 'fail'}">
+                            <span>${test.pass ? '✓' : '✗'} ${test.name}</span>
+                            ${test.error ? `<div class="error-msg">${test.error}</div>` : ''}
+                        </div>
+                    `;
+                }
+            });
+            if (currentSuite) html += '</div>';
+
+            resultsDiv.innerHTML = html;
+
+            const summaryDiv = document.getElementById('summary');
+            const allPass = failed === 0;
+            summaryDiv.innerHTML = `
+                <div class="summary ${allPass ? 'all-pass' : 'has-fail'}">
+                    ${allPass ? '✓ Alla tester passerade!' : `✗ ${failed} test${failed > 1 ? 'er' : ''} misslyckades`}
+                    (${passed} av ${passed + failed} lyckades)
+                </div>
+            `;
+        }
+
+        renderResults();
+    </script>
+</body>
+</html>

@@ -155,6 +155,26 @@ function getCollectionCards(collectionId) {
     return cards.filter(card => isInCollection(card, collectionId));
 }
 
+// Favorite functions
+const FAVORITES_ID = 'favorites';
+
+function ensureFavoritesCollection() {
+    if (!collections[FAVORITES_ID]) {
+        collections[FAVORITES_ID] = { name: 'Favoriter', cards: [] };
+        saveCollections();
+        renderCollectionSelector();
+    }
+}
+
+function isFavorite(card) {
+    return isInCollection(card, FAVORITES_ID);
+}
+
+function toggleFavorite(card) {
+    ensureFavoritesCollection();
+    toggleCardInCollection(card, FAVORITES_ID);
+}
+
 function saveCollections() {
     if (currentDeckId) {
         localStorage.setItem('collections_' + currentDeckId, JSON.stringify(collections));
@@ -268,10 +288,14 @@ function updateDisplay() {
             `;
         }
 
+        const isFav = isFavorite(currentCard);
         display.innerHTML = `
             <div class="drawn-card">
                 <button class="add-to-collection-btn" onclick="toggleCollectionMenu(event)" title="Lägg till i samling">
                     ${icons.addToCollection}
+                </button>
+                <button class="favorite-btn ${isFav ? 'active' : ''}" onclick="toggleFavorite(currentCard)" title="${isFav ? 'Ta bort från favoriter' : 'Lägg till i favoriter'}">
+                    ${isFav ? '❤️' : '🤍'}
                 </button>
                 ${menuHtml}
                 <span class="card-category">${currentCard.category}</span>
