@@ -61,7 +61,15 @@ exports.createCreator = functions.https.onCall(async (data, context) => {
         return { success: true, uid: userRecord.uid };
     } catch (error) {
         console.error('Error creating creator:', error);
-        throw new functions.https.HttpsError('internal', error.message);
+        // Return more specific error messages
+        if (error.code === 'auth/email-already-exists') {
+            throw new functions.https.HttpsError('already-exists', 'E-postadressen används redan');
+        } else if (error.code === 'auth/invalid-email') {
+            throw new functions.https.HttpsError('invalid-argument', 'Ogiltig e-postadress');
+        } else if (error.code === 'auth/weak-password') {
+            throw new functions.https.HttpsError('invalid-argument', 'Lösenordet är för svagt');
+        }
+        throw new functions.https.HttpsError('internal', error.message || error.code || 'Unknown error');
     }
 });
 
