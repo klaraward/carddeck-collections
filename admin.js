@@ -1,9 +1,15 @@
 // Admin page functionality
 let creatorToDelete = null;
 let deckToDelete = null;
+let isCreatingCreator = false; // Flag to prevent auth listener from interrupting creator creation
 
 // Check auth state on page load
 auth.onAuthStateChanged(async (user) => {
+    // Skip auth checks while creating a new creator
+    if (isCreatingCreator) {
+        return;
+    }
+
     if (user) {
         // User is signed in - check if admin
         try {
@@ -130,7 +136,7 @@ function closeCreatorModal() {
     document.getElementById('creator-modal').classList.remove('active');
 }
 
-// Create creator via Cloud Function
+// Create creator - supports both client-side and server-side modes
 async function saveCreator() {
     const name = document.getElementById('creator-name-input').value.trim();
     const email = document.getElementById('creator-email-input').value.trim();
@@ -152,12 +158,11 @@ async function saveCreator() {
     }
 
     try {
-        const createCreatorFn = functions.httpsCallable('createCreator');
-        await createCreatorFn({
-            name: name,
-            email: email,
-            password: password
-        });
+        if (appConfig.createUserMode === 'client') {
+            await createCreatorClientSide(name, email, password);
+        } else {
+            await createCreatorServerSide(name, email, password);
+        }
 
         alert('Creator skapad!');
         closeCreatorModal();
@@ -174,6 +179,61 @@ async function saveCreator() {
         }
         alert('Kunde inte skapa creator: ' + message);
     }
+}
+
+// Create creator via client-side Firebase Auth
+// Note: This requires temporarily signing out the admin to create the new user
+async function createCreatorClientSide(name, email, password) {
+    // Set flag to prevent auth listener from interrupting
+    isCreatingCreator = true;
+
+    try {
+        // Sign out admin first
+        await auth.signOut();
+
+        // Create the new user
+        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+        const newUser = userCredential.user;
+
+        // Update display name
+        await newUser.updateProfile({ displayName: name });
+
+        // Force token refresh to ensure auth state is propagated
+        await newUser.getIdToken(true);
+
+        // Small delay to ensure auth state is fully propagated
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // Create Firestore document
+        await db.collection('creators').doc(newUser.uid).set({
+            name: name,
+            email: email,
+            deckCount: 0,
+            isAdmin: false,
+            createdAt: new Date().toISOString()
+        });
+
+        // Sign out the new user
+        await auth.signOut();
+
+        // Reset flag and reload page for admin to login again
+        isCreatingCreator = false;
+        alert('Creator skapad! Du behöver logga in igen.');
+        location.reload();
+    } catch (error) {
+        isCreatingCreator = false;
+        throw error;
+    }
+}
+
+// Create creator via Cloud Function (server-side)
+async function createCreatorServerSide(name, email, password) {
+    const createCreatorFn = functions.httpsCallable('createCreator');
+    await createCreatorFn({
+        name: name,
+        email: email,
+        password: password
+    });
 }
 
 // Delete creator modal

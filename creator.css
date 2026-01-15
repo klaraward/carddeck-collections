@@ -157,10 +157,29 @@
     border-radius: 10px;
     margin-bottom: 20px;
     font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
 .logged-in-as strong {
     font-weight: 600;
+}
+
+.btn-logout {
+    padding: 6px 12px;
+    background: transparent;
+    color: #367b62;
+    border: 1px solid #367b62;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.2s;
+}
+
+.btn-logout:hover {
+    background: #367b62;
+    color: white;
 }
 
 /* Creator dashboard */

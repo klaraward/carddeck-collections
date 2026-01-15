@@ -1,16 +1,26 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Decks - public read, write only via Cloud Functions
+    // Decks - public read, owners can write their own decks
     match /decks/{deckId} {
       allow read: if true;
-      allow write: if false;
+      // Allow create if authenticated and setting themselves as creator
+      allow create: if request.auth != null
+        && request.resource.data.creatorId == request.auth.uid;
+      // Allow update/delete if authenticated and is the deck owner
+      allow update, delete: if request.auth != null
+        && resource.data.creatorId == request.auth.uid;
     }
 
-    // Creators - authenticated read, write only via Cloud Functions
+    // Creators - authenticated read, create allowed for own document
     match /creators/{creatorId} {
       allow read: if request.auth != null;
-      allow write: if false;
+      // Allow creating document where document ID matches user's UID
+      allow create: if request.auth != null && request.auth.uid == creatorId;
+      // Allow updates only for own document (for deckCount updates)
+      allow update: if request.auth != null && request.auth.uid == creatorId;
+      // Deletes only via Cloud Functions
+      allow delete: if false;
     }
 
     // Settings - no client access

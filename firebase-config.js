@@ -9,6 +9,13 @@ const firebaseConfig = {
     appId: "1:202816103380:web:5aa0582321e7e4a5ce6c41"
 };
 
+// App configuration
+const appConfig = {
+    // Set to 'client' to create users via client-side Firebase Auth (less secure, but works without Cloud Functions)
+    // Set to 'server' to create users via Cloud Functions (more secure)
+    createUserMode: 'client'
+};
+
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();

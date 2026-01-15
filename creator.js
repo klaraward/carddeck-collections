@@ -296,7 +296,7 @@ function showCsvPreview(cards) {
     `;
 }
 
-// Save deck via Cloud Function
+// Save deck - supports both client-side and server-side modes
 async function saveDeck() {
     if (!currentCreator) {
         alert('Du måste vara inloggad för att spara kortlekar.');
@@ -333,21 +333,22 @@ async function saveDeck() {
         return;
     }
 
+    const deckData = {
+        name: name,
+        subtitle: subtitle,
+        icon: icon,
+        backgroundColor: `linear-gradient(135deg, ${color} 0%, ${adjustColor(color, -20)} 100%)`,
+        textColor: textColor,
+        public: isPublic,
+        cards: parsedCsvCards
+    };
+
     try {
-        const saveDeckFn = functions.httpsCallable('saveDeck');
-        await saveDeckFn({
-            deckId: deckId,
-            isEdit: !!editingDeckId,
-            deckData: {
-                name: name,
-                subtitle: subtitle,
-                icon: icon,
-                backgroundColor: `linear-gradient(135deg, ${color} 0%, ${adjustColor(color, -20)} 100%)`,
-                textColor: textColor,
-                public: isPublic,
-                cards: parsedCsvCards
-            }
-        });
+        if (appConfig.createUserMode === 'client') {
+            await saveDeckClientSide(deckId, deckData, !!editingDeckId);
+        } else {
+            await saveDeckServerSide(deckId, deckData, !!editingDeckId);
+        }
 
         alert(editingDeckId ? 'Kortleken har uppdaterats!' : 'Kortleken har skapats!');
 
@@ -362,6 +363,63 @@ async function saveDeck() {
     }
 }
 
+// Save deck via client-side Firestore
+async function saveDeckClientSide(deckId, deckData, isEdit) {
+    // For new decks, check ID doesn't exist
+    if (!isEdit) {
+        const existingDeck = await db.collection('decks').doc(deckId).get();
+        if (existingDeck.exists) {
+            throw new Error('En kortlek med detta ID finns redan');
+        }
+    }
+
+    // For edits, verify ownership
+    if (isEdit) {
+        const existingDeck = await db.collection('decks').doc(deckId).get();
+        if (!existingDeck.exists) {
+            throw new Error('Kortleken hittades inte');
+        }
+        if (existingDeck.data().creatorId !== currentCreator.id) {
+            throw new Error('Du kan bara redigera dina egna kortlekar');
+        }
+    }
+
+    // Build deck object
+    const deck = {
+        ...deckData,
+        creatorId: currentCreator.id,
+        creatorName: currentCreator.name,
+        updatedAt: new Date().toISOString()
+    };
+
+    if (!isEdit) {
+        deck.createdAt = new Date().toISOString();
+    }
+
+    await db.collection('decks').doc(deckId).set(deck, { merge: true });
+    await updateMyDeckCount();
+}
+
+// Save deck via Cloud Function (server-side)
+async function saveDeckServerSide(deckId, deckData, isEdit) {
+    const saveDeckFn = functions.httpsCallable('saveDeck');
+    await saveDeckFn({
+        deckId: deckId,
+        isEdit: isEdit,
+        deckData: deckData
+    });
+}
+
+// Update own deck count in Firestore
+async function updateMyDeckCount() {
+    const snapshot = await db.collection('decks')
+        .where('creatorId', '==', currentCreator.id)
+        .get();
+    await db.collection('creators').doc(currentCreator.id).update({
+        deckCount: snapshot.size
+    });
+}
+
 // Delete deck modal
 function openDeleteDeckModal(deckId, deckName) {
     deckToDelete = deckId;
@@ -374,13 +432,16 @@ function closeDeleteDeckModal() {
     deckToDelete = null;
 }
 
-// Delete deck via Cloud Function
+// Delete deck - supports both client-side and server-side modes
 async function confirmDeleteDeck() {
     if (!deckToDelete) return;
 
     try {
-        const deleteDeckFn = functions.httpsCallable('deleteDeck');
-        await deleteDeckFn({ deckId: deckToDelete });
+        if (appConfig.createUserMode === 'client') {
+            await deleteDeckClientSide(deckToDelete);
+        } else {
+            await deleteDeckServerSide(deckToDelete);
+        }
 
         closeDeleteDeckModal();
         loadMyDecks();
@@ -389,6 +450,27 @@ async function confirmDeleteDeck() {
         const message = error.message || error.code || 'Okänt fel';
         alert('Kunde inte ta bort kortleken: ' + message);
     }
+}
+
+// Delete deck via client-side Firestore
+async function deleteDeckClientSide(deckId) {
+    // Verify ownership before deleting
+    const deckDoc = await db.collection('decks').doc(deckId).get();
+    if (!deckDoc.exists) {
+        throw new Error('Kortleken hittades inte');
+    }
+    if (deckDoc.data().creatorId !== currentCreator.id) {
+        throw new Error('Du kan bara ta bort dina egna kortlekar');
+    }
+
+    await db.collection('decks').doc(deckId).delete();
+    await updateMyDeckCount();
+}
+
+// Delete deck via Cloud Function (server-side)
+async function deleteDeckServerSide(deckId) {
+    const deleteDeckFn = functions.httpsCallable('deleteDeck');
+    await deleteDeckFn({ deckId: deckId });
 }
 
 // Helper function to darken/lighten a color
