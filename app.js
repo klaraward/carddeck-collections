@@ -72,6 +72,7 @@ function hideLoading() {
     document.getElementById('collection-selector').style.display = 'flex';
     document.querySelector('.deck').style.display = 'block';
     document.querySelector('.shuffle-btn').style.display = 'block';
+    document.getElementById('back-link').style.display = 'block';
 }
 
 function showError(message) {
