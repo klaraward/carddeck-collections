@@ -164,7 +164,14 @@ async function saveCreator() {
         loadCreators();
     } catch (error) {
         console.error('Error creating creator:', error);
-        const message = error.message || error.code || 'Okänt fel';
+        // Show more details about the error
+        let message = error.message || 'Okänt fel';
+        if (error.details) {
+            message = error.details;
+        }
+        if (error.code) {
+            message += ' (' + error.code + ')';
+        }
         alert('Kunde inte skapa creator: ' + message);
     }
 }
