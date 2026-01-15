@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skapa kortlek</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="creator.css">
+</head>
+<body>
+    <h1>Skapa kortlek</h1>
+    <p class="subtitle">Skapa och importera nya kortlekar</p>
+
+    <!-- Admin password modal -->
+    <div class="modal-overlay" id="admin-password-modal">
+        <div class="modal">
+            <h3>Admin-lösenord</h3>
+            <p style="color: #666; margin-bottom: 15px; font-size: 0.9rem;">Ange lösenord för att skapa kortlekar</p>
+            <input type="password" id="admin-password-input" placeholder="Lösenord">
+            <div class="modal-buttons">
+                <a href="index.html" class="modal-btn secondary">Avbryt</a>
+                <button class="modal-btn primary" onclick="verifyAdminPassword()">Fortsätt</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Creator form (hidden until authenticated) -->
+    <div class="creator-form" id="creator-form" style="display: none;">
+        <div class="form-card">
+            <div class="form-group">
+                <label for="deck-id-input">ID (används i URL)</label>
+                <input type="text" id="deck-id-input" placeholder="t.ex. minlek">
+            </div>
+
+            <div class="form-group">
+                <label for="deck-name-input">Namn</label>
+                <input type="text" id="deck-name-input" placeholder="Kortlekens namn">
+            </div>
+
+            <div class="form-group">
+                <label for="deck-subtitle-input">Undertitel (valfritt)</label>
+                <input type="text" id="deck-subtitle-input" placeholder="En kort beskrivning">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="deck-icon-input">Ikon</label>
+                    <input type="text" id="deck-icon-input" placeholder="🃏" value="🃏">
+                </div>
+
+                <div class="form-group">
+                    <label for="deck-color-input">Bakgrund</label>
+                    <input type="color" id="deck-color-input" value="#669e6a">
+                </div>
+
+                <div class="form-group">
+                    <label for="deck-textcolor-input">Text</label>
+                    <input type="color" id="deck-textcolor-input" value="#ffffff">
+                </div>
+
+                <div class="form-group">
+                    <label for="deck-public-input">Publik</label>
+                    <input type="checkbox" id="deck-public-input" checked>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="deck-csv-input">Importera kort (CSV)</label>
+                <input type="file" id="deck-csv-input" accept=".csv">
+                <p class="form-hint">Format: category,icon,title,description,tip</p>
+            </div>
+
+            <div id="csv-preview" class="csv-preview"></div>
+
+            <div class="form-actions">
+                <a href="index.html" class="modal-btn secondary">Tillbaka</a>
+                <button class="modal-btn primary" onclick="saveDeck()">Skapa kortlek</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+    <!-- App scripts -->
+    <script src="firebase-config.js"></script>
+    <script src="creator.js"></script>
+</body>
+</html>

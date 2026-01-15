@@ -1,0 +1,144 @@
+/* Creator page specific styles */
+
+.creator-form {
+    width: 100%;
+    max-width: 450px;
+    margin: 20px auto;
+}
+
+.form-card {
+    background: white;
+    border-radius: 20px;
+    padding: 25px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+}
+
+.form-card .form-group {
+    margin-bottom: 18px;
+}
+
+.form-card .form-group label {
+    display: block;
+    font-size: 0.85rem;
+    color: #666;
+    margin-bottom: 6px;
+    font-weight: 500;
+}
+
+.form-card .form-group input[type="text"],
+.form-card .form-group input[type="file"] {
+    width: 100%;
+    padding: 12px 14px;
+    font-size: 1rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.form-card .form-group input[type="text"]:focus {
+    border-color: #367b62;
+}
+
+.form-card .form-group input[type="color"] {
+    width: 50px;
+    height: 42px;
+    padding: 3px;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.form-card .form-group input[type="checkbox"] {
+    width: 22px;
+    height: 22px;
+    cursor: pointer;
+    accent-color: #367b62;
+}
+
+.form-card .form-row {
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+}
+
+.form-card .form-row .form-group {
+    flex: 1;
+}
+
+.form-card .form-row .form-group:first-child {
+    flex: 0 0 70px;
+}
+
+.form-card .form-hint {
+    font-size: 0.75rem;
+    color: #999;
+    margin-top: 6px;
+}
+
+.form-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+.form-actions .modal-btn {
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* CSV preview in creator */
+.form-card .csv-preview {
+    margin: 15px 0;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 10px;
+}
+
+.form-card .csv-success {
+    color: #367b62;
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+
+.form-card .csv-error {
+    color: #e74c3c;
+    font-weight: 500;
+}
+
+.form-card .csv-cards-preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.form-card .csv-card-preview {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    background: white;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.form-card .csv-card-icon {
+    font-size: 1.1rem;
+}
+
+.form-card .csv-card-title {
+    color: #333;
+    font-weight: 500;
+}
+
+.form-card .csv-card-more {
+    padding: 8px 12px;
+    color: #999;
+    font-size: 0.85rem;
+}

@@ -13,7 +13,6 @@
     <!-- Deck selector (shown when no deck is selected) -->
     <div class="deck-selector" id="deck-selector" style="display: none;">
         <div class="deck-list" id="deck-list"></div>
-        <button class="create-deck-btn" onclick="openCreateDeckModal()">+ Skapa ny kortlek</button>
     </div>
 
     <div class="collection-selector" id="collection-selector"></div>
@@ -74,76 +73,6 @@
             </div>
             <div class="collection-actions">
                 <button class="modal-btn secondary" onclick="closeManageModal()" style="width: 100%;" id="btn-close"></button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal for admin password -->
-    <div class="modal-overlay" id="admin-password-modal">
-        <div class="modal">
-            <h3>Admin-lösenord</h3>
-            <p style="color: #666; margin-bottom: 15px; font-size: 0.9rem;">Ange lösenord för att skapa kortlekar</p>
-            <input type="password" id="admin-password-input" placeholder="Lösenord">
-            <div class="modal-buttons">
-                <button class="modal-btn secondary" onclick="closeAdminPasswordModal()">Avbryt</button>
-                <button class="modal-btn primary" onclick="verifyAdminPassword()">Fortsätt</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal for creating/importing a deck -->
-    <div class="modal-overlay" id="create-deck-modal">
-        <div class="modal modal-wide">
-            <h3>Skapa ny kortlek</h3>
-
-            <div class="form-group">
-                <label for="deck-id-input">ID (används i URL)</label>
-                <input type="text" id="deck-id-input" placeholder="t.ex. minlek">
-            </div>
-
-            <div class="form-group">
-                <label for="deck-name-input">Namn</label>
-                <input type="text" id="deck-name-input" placeholder="Kortlekens namn">
-            </div>
-
-            <div class="form-group">
-                <label for="deck-subtitle-input">Undertitel (valfritt)</label>
-                <input type="text" id="deck-subtitle-input" placeholder="En kort beskrivning">
-            </div>
-
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="deck-icon-input">Ikon</label>
-                    <input type="text" id="deck-icon-input" placeholder="🃏" value="🃏">
-                </div>
-
-                <div class="form-group">
-                    <label for="deck-color-input">Bakgrund</label>
-                    <input type="color" id="deck-color-input" value="#669e6a">
-                </div>
-
-                <div class="form-group">
-                    <label for="deck-textcolor-input">Text</label>
-                    <input type="color" id="deck-textcolor-input" value="#ffffff">
-                </div>
-
-                <div class="form-group">
-                    <label for="deck-public-input">Publik</label>
-                    <input type="checkbox" id="deck-public-input" checked>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label for="deck-csv-input">Importera kort (CSV)</label>
-                <input type="file" id="deck-csv-input" accept=".csv">
-                <p class="form-hint">Format: category,icon,title,description,tip</p>
-            </div>
-
-            <div id="csv-preview" class="csv-preview"></div>
-
-            <div class="modal-buttons">
-                <button class="modal-btn secondary" onclick="closeCreateDeckModal()">Avbryt</button>
-                <button class="modal-btn primary" onclick="saveDeck()">Skapa kortlek</button>
             </div>
         </div>
     </div>
