@@ -135,12 +135,69 @@ function showCreateForm() {
     document.getElementById('deck-textcolor-input').value = '#ffffff';
     document.getElementById('deck-public-input').checked = true;
     document.getElementById('deck-csv-input').value = '';
-    document.getElementById('csv-preview').innerHTML = '';
-    document.getElementById('current-cards-hint').style.display = 'none';
     document.getElementById('save-deck-btn').textContent = 'Skapa kortlek';
+
+    // Initialize empty cards table with one row
+    clearCardsTable();
+    addCardRow();
 
     document.getElementById('deck-form-card').style.display = 'block';
     document.getElementById('deck-name-input').focus();
+}
+
+// Cards table functions
+function clearCardsTable() {
+    document.getElementById('cards-table-body').innerHTML = '';
+}
+
+function addCardRow(card = null) {
+    const tbody = document.getElementById('cards-table-body');
+    const row = document.createElement('tr');
+
+    row.innerHTML = `
+        <td><input type="text" class="card-category" value="${card?.category || ''}" placeholder="Kategori"></td>
+        <td><input type="text" class="card-icon icon-input" value="${card?.icon || ''}" placeholder="🎯"></td>
+        <td><input type="text" class="card-title" value="${card?.title || ''}" placeholder="Titel"></td>
+        <td><input type="text" class="card-description" value="${card?.description || ''}" placeholder="Beskrivning"></td>
+        <td><input type="text" class="card-tip" value="${card?.tip || ''}" placeholder="Tips"></td>
+        <td><button type="button" class="btn-remove-row" onclick="removeCardRow(this)">✕</button></td>
+    `;
+
+    tbody.appendChild(row);
+}
+
+function removeCardRow(button) {
+    const row = button.closest('tr');
+    row.remove();
+}
+
+function populateCardsTable(cards) {
+    clearCardsTable();
+    if (cards.length === 0) {
+        addCardRow();
+    } else {
+        cards.forEach(card => addCardRow(card));
+    }
+}
+
+function getCardsFromTable() {
+    const rows = document.querySelectorAll('#cards-table-body tr');
+    const cards = [];
+
+    rows.forEach(row => {
+        const category = row.querySelector('.card-category').value.trim();
+        const icon = row.querySelector('.card-icon').value.trim();
+        const title = row.querySelector('.card-title').value.trim();
+        const description = row.querySelector('.card-description').value.trim();
+        const tip = row.querySelector('.card-tip').value.trim();
+
+        // Only include rows that have at least a title
+        if (title) {
+            cards.push({ category, icon, title, description, tip });
+        }
+    });
+
+    return cards;
 }
 
 // Hide create form
@@ -177,12 +234,9 @@ async function editDeck(deckId) {
         document.getElementById('deck-textcolor-input').value = deck.textColor || '#ffffff';
         document.getElementById('deck-public-input').checked = deck.public !== false;
         document.getElementById('deck-csv-input').value = '';
-        document.getElementById('csv-preview').innerHTML = '';
 
-        // Show current cards hint
-        const hint = document.getElementById('current-cards-hint');
-        hint.textContent = `Nuvarande: ${parsedCsvCards.length} kort. Ladda upp ny CSV för att ersätta.`;
-        hint.style.display = 'block';
+        // Populate the cards table with existing cards
+        populateCardsTable(parsedCsvCards);
 
         document.getElementById('save-deck-btn').textContent = 'Spara ändringar';
 
@@ -216,9 +270,8 @@ document.getElementById('deck-csv-input').addEventListener('change', function(e)
     const reader = new FileReader();
     reader.onload = function(event) {
         const csvText = event.target.result;
-        parsedCsvCards = parseCSV(csvText);
-        showCsvPreview(parsedCsvCards);
-        document.getElementById('current-cards-hint').style.display = 'none';
+        const cards = parseCSV(csvText);
+        populateCardsTable(cards);
     };
     reader.readAsText(file);
 });
@@ -274,28 +327,6 @@ function parseCSVLine(line) {
     return fields;
 }
 
-function showCsvPreview(cards) {
-    const preview = document.getElementById('csv-preview');
-
-    if (cards.length === 0) {
-        preview.innerHTML = '<p class="csv-error">Inga kort kunde läsas från filen.</p>';
-        return;
-    }
-
-    preview.innerHTML = `
-        <p class="csv-success">${cards.length} kort hittades</p>
-        <div class="csv-cards-preview">
-            ${cards.slice(0, 3).map(card => `
-                <div class="csv-card-preview">
-                    <span class="csv-card-icon">${card.icon}</span>
-                    <span class="csv-card-title">${card.title}</span>
-                </div>
-            `).join('')}
-            ${cards.length > 3 ? `<div class="csv-card-more">+${cards.length - 3} till...</div>` : ''}
-        </div>
-    `;
-}
-
 // Save deck - supports both client-side and server-side modes
 async function saveDeck() {
     if (!currentCreator) {
@@ -327,8 +358,11 @@ async function saveDeck() {
         return;
     }
 
-    if (parsedCsvCards.length === 0) {
-        alert('Du måste ladda upp en CSV-fil med kort.');
+    // Get cards from table
+    const cards = getCardsFromTable();
+
+    if (cards.length === 0) {
+        alert('Du måste lägga till minst ett kort.');
         return;
     }
 
@@ -345,7 +379,7 @@ async function saveDeck() {
         backgroundColor: `linear-gradient(135deg, ${color} 0%, ${adjustColor(color, -20)} 100%)`,
         textColor: textColor,
         public: isPublic,
-        cards: parsedCsvCards
+        cards: cards
     };
 
     // Show loading state

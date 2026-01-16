@@ -93,13 +93,31 @@
             </div>
 
             <div class="form-group">
-                <label for="deck-csv-input">Importera kort (CSV)</label>
-                <input type="file" id="deck-csv-input" accept=".csv">
-                <p class="form-hint">Format: category,icon,title,description,tip</p>
-                <p class="form-hint" id="current-cards-hint" style="display: none;"></p>
+                <label>Kort</label>
+                <div class="cards-table-container">
+                    <table class="cards-table" id="cards-table">
+                        <thead>
+                            <tr>
+                                <th>Kategori</th>
+                                <th>Ikon</th>
+                                <th>Titel</th>
+                                <th>Beskrivning</th>
+                                <th>Tips</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="cards-table-body">
+                        </tbody>
+                    </table>
+                </div>
+                <button type="button" class="btn-add-row" onclick="addCardRow()">+ Lägg till kort</button>
             </div>
 
-            <div id="csv-preview" class="csv-preview"></div>
+            <div class="form-group">
+                <label for="deck-csv-input">Importera från CSV (ersätter tabellen)</label>
+                <input type="file" id="deck-csv-input" accept=".csv">
+                <p class="form-hint">Format: category,icon,title,description,tip</p>
+            </div>
 
             <div class="form-actions">
                 <button class="modal-btn secondary" onclick="hideCreateForm()">Avbryt</button>

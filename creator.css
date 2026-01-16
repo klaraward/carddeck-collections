@@ -98,55 +98,97 @@
     justify-content: center;
 }
 
-/* CSV preview in creator */
-.form-card .csv-preview {
-    margin: 15px 0;
-    padding: 15px;
-    background: #f8f9fa;
-    border-radius: 10px;
-}
-
-.form-card .csv-success {
-    color: #367b62;
-    font-weight: 600;
-    margin-bottom: 12px;
-}
-
-.form-card .csv-error {
-    color: #e74c3c;
-    font-weight: 500;
-}
-
-.form-card .csv-cards-preview {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.form-card .csv-card-preview {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 12px;
-    background: white;
+/* Cards table */
+.cards-table-container {
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid #e0e0e0;
     border-radius: 8px;
-    font-size: 0.85rem;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    margin-bottom: 10px;
 }
 
-.form-card .csv-card-icon {
+.cards-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+
+.cards-table th {
+    background: #f5f5f5;
+    padding: 8px 6px;
+    text-align: left;
+    font-weight: 600;
+    color: #555;
+    position: sticky;
+    top: 0;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.cards-table td {
+    padding: 4px;
+    border-bottom: 1px solid #f0f0f0;
+    vertical-align: middle;
+}
+
+.cards-table tr:last-child td {
+    border-bottom: none;
+}
+
+.cards-table input[type="text"] {
+    width: 100%;
+    padding: 5px 6px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    box-sizing: border-box;
+    height: 32px;
+}
+
+.cards-table input[type="text"]::placeholder {
+    font-style: normal;
+    color: #aaa;
+}
+
+.cards-table input[type="text"]:focus {
+    border-color: #367b62;
+    outline: none;
+}
+
+.cards-table .icon-input {
+    width: 50px;
+    text-align: center;
+}
+
+.cards-table .btn-remove-row {
+    background: none;
+    border: none;
+    color: #dc3545;
+    cursor: pointer;
+    padding: 4px 8px;
     font-size: 1.1rem;
+    opacity: 0.6;
+    transition: opacity 0.2s;
 }
 
-.form-card .csv-card-title {
-    color: #333;
-    font-weight: 500;
+.cards-table .btn-remove-row:hover {
+    opacity: 1;
 }
 
-.form-card .csv-card-more {
-    padding: 8px 12px;
-    color: #999;
+.btn-add-row {
+    padding: 8px 16px;
+    background: #f0f7f4;
+    color: #367b62;
+    border: 1px dashed #367b62;
+    border-radius: 6px;
+    cursor: pointer;
     font-size: 0.85rem;
+    transition: all 0.2s;
+}
+
+.btn-add-row:hover {
+    background: #367b62;
+    color: white;
+    border-style: solid;
 }
 
 /* Logged in as indicator */
