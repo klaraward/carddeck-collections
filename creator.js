@@ -260,22 +260,28 @@ document.getElementById('creator-password-input').addEventListener('keypress', f
     }
 });
 
-// CSV file input handler
+// CSV/TSV file input handler
 document.getElementById('deck-csv-input').addEventListener('change', function(e) {
     const file = e.target.files[0];
     if (!file) return;
 
     const reader = new FileReader();
     reader.onload = function(event) {
-        const csvText = event.target.result;
-        const cards = parseCSV(csvText);
+        const text = event.target.result;
+        const cards = parseDelimitedText(text);
         populateCardsTable(cards);
     };
     reader.readAsText(file);
 });
 
-function parseCSV(csvText) {
-    const lines = csvText.split('\n').filter(line => line.trim());
+function parseDelimitedText(text) {
+    const lines = text.split('\n').filter(line => line.trim());
+    if (lines.length === 0) return [];
+
+    // Detect delimiter: if first line has tabs, use tab; otherwise use comma
+    const firstLine = lines[0];
+    const delimiter = firstLine.includes('\t') ? '\t' : ',';
+
     const cards = [];
 
     for (let i = 0; i < lines.length; i++) {
@@ -286,8 +292,8 @@ function parseCSV(csvText) {
             continue;
         }
 
-        // Parse CSV line (handle quoted fields)
-        const fields = parseCSVLine(line);
+        // Parse line with detected delimiter
+        const fields = parseLine(line, delimiter);
 
         if (fields.length >= 4) {
             cards.push({
@@ -302,7 +308,7 @@ function parseCSV(csvText) {
     return cards;
 }
 
-function parseCSVLine(line) {
+function parseLine(line, delimiter) {
     const fields = [];
     let current = '';
     let inQuotes = false;
@@ -312,7 +318,7 @@ function parseCSVLine(line) {
 
         if (char === '"') {
             inQuotes = !inQuotes;
-        } else if (char === ',' && !inQuotes) {
+        } else if (char === delimiter && !inQuotes) {
             fields.push(current);
             current = '';
         } else {

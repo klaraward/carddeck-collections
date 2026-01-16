@@ -168,8 +168,8 @@
             return isInCollection(card, FAVORITES_ID);
         }
 
-        // Från creator.js
-        function parseCSVLine(line) {
+        // Från creator.js - CSV/TSV parser
+        function parseLine(line, delimiter) {
             const fields = [];
             let current = '';
             let inQuotes = false;
@@ -179,7 +179,7 @@
 
                 if (char === '"') {
                     inQuotes = !inQuotes;
-                } else if (char === ',' && !inQuotes) {
+                } else if (char === delimiter && !inQuotes) {
                     fields.push(current);
                     current = '';
                 } else {
@@ -191,8 +191,14 @@
             return fields;
         }
 
-        function parseCSV(csvText) {
-            const lines = csvText.split('\n').filter(line => line.trim());
+        function parseDelimitedText(text) {
+            const lines = text.split('\n').filter(line => line.trim());
+            if (lines.length === 0) return [];
+
+            // Detect delimiter: if first line has tabs, use tab; otherwise use comma
+            const firstLine = lines[0];
+            const delimiter = firstLine.includes('\t') ? '\t' : ',';
+
             const cards = [];
 
             for (let i = 0; i < lines.length; i++) {
@@ -202,15 +208,14 @@
                     continue;
                 }
 
-                const fields = parseCSVLine(line);
+                const fields = parseLine(line, delimiter);
 
-                if (fields.length >= 5) {
+                if (fields.length >= 4) {
                     cards.push({
                         category: fields[0].trim(),
                         icon: fields[1].trim(),
                         title: fields[2].trim(),
-                        description: fields[3].trim(),
-                        tip: fields[4].trim()
+                        description: fields[3].trim()
                     });
                 }
             }
@@ -329,75 +334,113 @@
             });
         });
 
-        describe('parseCSVLine', () => {
+        describe('parseLine (CSV)', () => {
             it('ska parsa enkel CSV-rad', () => {
-                const line = 'a,b,c,d,e';
-                expect(parseCSVLine(line)).toEqual(['a', 'b', 'c', 'd', 'e']);
+                const line = 'a,b,c,d';
+                expect(parseLine(line, ',')).toEqual(['a', 'b', 'c', 'd']);
             });
 
             it('ska hantera citerade fält med kommatecken', () => {
-                const line = 'kategori,ikon,"titel, med komma",beskrivning,tips';
-                const result = parseCSVLine(line);
+                const line = 'kategori,ikon,"titel, med komma",beskrivning';
+                const result = parseLine(line, ',');
                 expect(result[2]).toBe('titel, med komma');
             });
 
             it('ska hantera tomma fält', () => {
-                const line = 'a,,c,,e';
-                expect(parseCSVLine(line)).toEqual(['a', '', 'c', '', 'e']);
+                const line = 'a,,c,d';
+                expect(parseLine(line, ',')).toEqual(['a', '', 'c', 'd']);
             });
 
             it('ska hantera citerade fält med flera kommatecken', () => {
-                const line = '"a,b,c",d,e';
-                const result = parseCSVLine(line);
+                const line = '"a,b,c",d,e,f';
+                const result = parseLine(line, ',');
                 expect(result[0]).toBe('a,b,c');
             });
         });
 
-        describe('parseCSV', () => {
+        describe('parseLine (TSV)', () => {
+            it('ska parsa enkel TSV-rad', () => {
+                const line = 'a\tb\tc\td';
+                expect(parseLine(line, '\t')).toEqual(['a', 'b', 'c', 'd']);
+            });
+
+            it('ska hantera kommatecken i TSV utan citattecken', () => {
+                const line = 'kategori\tikon\ttitel, med komma\tbeskrivning';
+                const result = parseLine(line, '\t');
+                expect(result[2]).toBe('titel, med komma');
+            });
+        });
+
+        describe('parseDelimitedText (CSV)', () => {
             it('ska parsa CSV-text till kort-objekt', () => {
-                const csv = 'Kategori,Ikon,Titel,Beskrivning,Tips';
-                const result = parseCSV(csv);
+                const csv = 'Kategori,Ikon,Titel,Beskrivning';
+                const result = parseDelimitedText(csv);
                 expect(result).toHaveLength(1);
                 expect(result[0].category).toBe('Kategori');
                 expect(result[0].title).toBe('Titel');
             });
 
             it('ska hoppa över header-rad', () => {
-                const csv = `category,icon,title,description,tip
-Andning,🌬️,Djupandning,Andas djupt,Slappna av`;
-                const result = parseCSV(csv);
+                const csv = `category,icon,title,description
+Andning,🌬️,Djupandning,Andas djupt`;
+                const result = parseDelimitedText(csv);
                 expect(result).toHaveLength(1);
                 expect(result[0].category).toBe('Andning');
             });
 
             it('ska hantera flera rader', () => {
-                const csv = `A,1,Kort1,Besk1,Tips1
-B,2,Kort2,Besk2,Tips2
-C,3,Kort3,Besk3,Tips3`;
-                const result = parseCSV(csv);
+                const csv = `A,1,Kort1,Besk1
+B,2,Kort2,Besk2
+C,3,Kort3,Besk3`;
+                const result = parseDelimitedText(csv);
                 expect(result).toHaveLength(3);
             });
 
             it('ska trimma whitespace', () => {
-                const csv = '  Kategori  ,  Ikon  ,  Titel  ,  Beskrivning  ,  Tips  ';
-                const result = parseCSV(csv);
+                const csv = '  Kategori  ,  Ikon  ,  Titel  ,  Beskrivning  ';
+                const result = parseDelimitedText(csv);
                 expect(result[0].category).toBe('Kategori');
                 expect(result[0].title).toBe('Titel');
             });
 
             it('ska ignorera rader med för få fält', () => {
-                const csv = `A,B,C,D,E
+                const csv = `A,B,C,D
 X,Y,Z`;
-                const result = parseCSV(csv);
+                const result = parseDelimitedText(csv);
                 expect(result).toHaveLength(1);
             });
 
             it('ska hantera tomma rader', () => {
-                const csv = `A,B,C,D,E
+                const csv = `A,B,C,D
 
-X,Y,Z,W,V`;
-                const result = parseCSV(csv);
+X,Y,Z,W`;
+                const result = parseDelimitedText(csv);
                 expect(result).toHaveLength(2);
+            });
+        });
+
+        describe('parseDelimitedText (TSV)', () => {
+            it('ska parsa TSV-text till kort-objekt', () => {
+                const tsv = 'Kategori\tIkon\tTitel\tBeskrivning';
+                const result = parseDelimitedText(tsv);
+                expect(result).toHaveLength(1);
+                expect(result[0].category).toBe('Kategori');
+                expect(result[0].title).toBe('Titel');
+            });
+
+            it('ska hoppa över TSV header-rad', () => {
+                const tsv = `category\ticon\ttitle\tdescription
+Andning\t🌬️\tDjupandning\tAndas djupt`;
+                const result = parseDelimitedText(tsv);
+                expect(result).toHaveLength(1);
+                expect(result[0].category).toBe('Andning');
+            });
+
+            it('ska hantera kommatecken i TSV-fält', () => {
+                const tsv = 'Kategori\tIkon\tTitel, med komma\tBeskrivning, med komma';
+                const result = parseDelimitedText(tsv);
+                expect(result[0].title).toBe('Titel, med komma');
+                expect(result[0].description).toBe('Beskrivning, med komma');
             });
         });
 
