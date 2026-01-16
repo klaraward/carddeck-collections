@@ -428,6 +428,11 @@ h1 {
     background: #2d6652;
 }
 
+.modal-btn.primary:disabled {
+    background: #9cb8a8;
+    cursor: not-allowed;
+}
+
 .modal-btn.secondary {
     background: #eee;
     color: #666;

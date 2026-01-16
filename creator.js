@@ -303,6 +303,11 @@ async function saveDeck() {
         return;
     }
 
+    const saveBtn = document.getElementById('save-deck-btn');
+
+    // Prevent double-clicks
+    if (saveBtn.disabled) return;
+
     const deckId = editingDeckId || document.getElementById('deck-id-input').value.trim();
     const name = document.getElementById('deck-name-input').value.trim();
     const subtitle = document.getElementById('deck-subtitle-input').value.trim();
@@ -343,6 +348,11 @@ async function saveDeck() {
         cards: parsedCsvCards
     };
 
+    // Show loading state
+    const originalText = saveBtn.textContent;
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Sparar...';
+
     try {
         if (appConfig.createUserMode === 'client') {
             await saveDeckClientSide(deckId, deckData, !!editingDeckId);
@@ -360,6 +370,10 @@ async function saveDeck() {
         console.error('Error saving deck:', error);
         const message = error.message || error.code || 'Okänt fel';
         alert('Kunde inte spara kortleken: ' + message);
+    } finally {
+        // Restore button state
+        saveBtn.disabled = false;
+        saveBtn.textContent = originalText;
     }
 }
 
