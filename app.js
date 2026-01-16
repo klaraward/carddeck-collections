@@ -310,7 +310,6 @@ function updateDisplay() {
                 <span class="card-icon">${currentCard.icon}</span>
                 <h2 class="card-title">${currentCard.title}</h2>
                 <p class="card-description">${currentCard.description}</p>
-                <p class="card-tip">${currentCard.tip}</p>
             </div>
         `;
     } else {

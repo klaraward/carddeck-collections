@@ -159,7 +159,6 @@ function addCardRow(card = null) {
         <td><input type="text" class="card-icon icon-input" value="${card?.icon || ''}" placeholder="🎯"></td>
         <td><input type="text" class="card-title" value="${card?.title || ''}" placeholder="Titel"></td>
         <td><input type="text" class="card-description" value="${card?.description || ''}" placeholder="Beskrivning"></td>
-        <td><input type="text" class="card-tip" value="${card?.tip || ''}" placeholder="Tips"></td>
         <td><button type="button" class="btn-remove-row" onclick="removeCardRow(this)">✕</button></td>
     `;
 
@@ -189,11 +188,10 @@ function getCardsFromTable() {
         const icon = row.querySelector('.card-icon').value.trim();
         const title = row.querySelector('.card-title').value.trim();
         const description = row.querySelector('.card-description').value.trim();
-        const tip = row.querySelector('.card-tip').value.trim();
 
         // Only include rows that have at least a title
         if (title) {
-            cards.push({ category, icon, title, description, tip });
+            cards.push({ category, icon, title, description });
         }
     });
 
@@ -291,13 +289,12 @@ function parseCSV(csvText) {
         // Parse CSV line (handle quoted fields)
         const fields = parseCSVLine(line);
 
-        if (fields.length >= 5) {
+        if (fields.length >= 4) {
             cards.push({
                 category: fields[0].trim(),
                 icon: fields[1].trim(),
                 title: fields[2].trim(),
-                description: fields[3].trim(),
-                tip: fields[4].trim()
+                description: fields[3].trim()
             });
         }
     }

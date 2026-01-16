@@ -151,16 +151,6 @@ h1 {
     flex-grow: 1;
 }
 
-.card-tip {
-    margin-top: 15px;
-    padding: 12px;
-    background: rgba(102, 126, 234, 0.1);
-    border-radius: 10px;
-    font-size: 0.9rem;
-    color: #667eea;
-    font-style: italic;
-}
-
 .draw-btn {
     margin-top: 20px;
     padding: 15px 40px;
