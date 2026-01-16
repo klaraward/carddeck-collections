@@ -668,3 +668,184 @@ h1 {
     color: var(--text-color, white);
     margin: 0 8px;
 }
+
+/* Fan view styles */
+.fan-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--bg-gradient, linear-gradient(135deg, #669e6a 0%, #367b62 100%));
+    z-index: 200;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    overflow: hidden;
+}
+
+.fan-overlay.active {
+    display: flex;
+}
+
+.fan-close-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s;
+    z-index: 210;
+}
+
+.fan-close-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+}
+
+.fan-title {
+    color: white;
+    margin-bottom: 20px;
+    text-align: center;
+    font-size: 1.3rem;
+    opacity: 0.9;
+}
+
+.fan-container {
+    flex: 1;
+    position: relative;
+    width: 100%;
+    max-width: 600px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+}
+
+.fan-card {
+    position: absolute;
+    width: 110px;
+    height: 154px;
+    background: linear-gradient(145deg, #ffffff, #f0f0f0);
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, z-index 0s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    transform-origin: bottom center;
+}
+
+.fan-card:hover {
+    transform: translateY(-20px) scale(1.1) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    z-index: 100 !important;
+}
+
+.fan-card.selected {
+    transform: translateY(-30px) scale(1.15) !important;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+    z-index: 150 !important;
+}
+
+.fan-card-icon {
+    font-size: 2.5rem;
+    margin-bottom: 6px;
+}
+
+.fan-card-title {
+    font-size: 0.7rem;
+    color: #2c3e50;
+    text-align: center;
+    font-weight: 600;
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.fan-selected-card {
+    width: 100%;
+    max-width: 300px;
+    min-height: 0;
+    max-height: 0;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    margin-top: 20px;
+}
+
+.fan-selected-card.active {
+    min-height: 200px;
+    max-height: 400px;
+}
+
+.fan-selected-card .drawn-card {
+    animation: none;
+    min-height: auto;
+    padding: 20px;
+}
+
+.fan-selected-card .card-icon {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+}
+
+.fan-selected-card .card-title {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+}
+
+.fan-selected-card .card-description {
+    font-size: 0.9rem;
+}
+
+.fan-remove-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    padding: 6px 12px;
+    background: #f8d7da;
+    color: #721c24;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.fan-remove-btn:hover {
+    background: #f1b0b7;
+}
+
+/* Responsive adjustments for fan view */
+@media (max-width: 480px) {
+    .fan-card {
+        width: 80px;
+        height: 112px;
+        padding: 8px;
+    }
+
+    .fan-card-icon {
+        font-size: 1.8rem;
+    }
+
+    .fan-card-title {
+        font-size: 0.55rem;
+    }
+
+    .fan-selected-card .drawn-card {
+        padding: 15px;
+    }
+}

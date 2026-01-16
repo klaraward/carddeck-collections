@@ -436,6 +436,124 @@ document.getElementById('collection-name-input').addEventListener('keypress', fu
     }
 });
 
+// Fan view functions
+let fanViewCollection = null;
+let fanSelectedCard = null;
+
+function openFanView(collectionId) {
+    closeManageModal();
+    fanViewCollection = collectionId;
+    fanSelectedCard = null;
+
+    const collectionCards = getCollectionCards(collectionId);
+    const collectionName = collections[collectionId]?.name || 'Samling';
+
+    document.getElementById('fan-title').textContent = `${collectionName} (${collectionCards.length} kort)`;
+
+    renderFanCards(collectionCards);
+    document.getElementById('fan-selected-card').innerHTML = '';
+    document.getElementById('fan-selected-card').classList.remove('active');
+
+    document.getElementById('fan-overlay').classList.add('active');
+}
+
+function closeFanView() {
+    document.getElementById('fan-overlay').classList.remove('active');
+    fanViewCollection = null;
+    fanSelectedCard = null;
+}
+
+function closeFanViewOnBackground(event) {
+    if (event.target.id === 'fan-overlay') {
+        closeFanView();
+    }
+}
+
+function renderFanCards(collectionCards) {
+    const container = document.getElementById('fan-container');
+    const totalCards = collectionCards.length;
+
+    if (totalCards === 0) {
+        container.innerHTML = '<p style="color: white; opacity: 0.7;">Samlingen är tom</p>';
+        return;
+    }
+
+    // Calculate fan spread angles and positions
+    const maxSpread = Math.min(totalCards * 8, 120); // Max 120 degrees spread
+    const startAngle = -maxSpread / 2;
+    const angleStep = totalCards > 1 ? maxSpread / (totalCards - 1) : 0;
+
+    let html = '';
+    collectionCards.forEach((card, index) => {
+        const angle = totalCards > 1 ? startAngle + (index * angleStep) : 0;
+        const zIndex = index + 1;
+
+        html += `
+            <div class="fan-card"
+                 style="transform: rotate(${angle}deg); z-index: ${zIndex};"
+                 data-index="${index}"
+                 onclick="selectFanCard(${index})">
+                <span class="fan-card-icon">${card.icon}</span>
+                <span class="fan-card-title">${card.title}</span>
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
+}
+
+function selectFanCard(index) {
+    const collectionCards = getCollectionCards(fanViewCollection);
+    const card = collectionCards[index];
+
+    if (!card) return;
+
+    fanSelectedCard = index;
+
+    // Update selected state on fan cards
+    document.querySelectorAll('.fan-card').forEach((el, i) => {
+        if (i === index) {
+            el.classList.add('selected');
+        } else {
+            el.classList.remove('selected');
+        }
+    });
+
+    // Show selected card details
+    const selectedContainer = document.getElementById('fan-selected-card');
+    selectedContainer.innerHTML = `
+        <div class="drawn-card">
+            <button class="fan-remove-btn" onclick="removeCardFromFan()" title="Ta bort från samling">Ta bort</button>
+            <span class="card-category">${card.category}</span>
+            <span class="card-icon">${card.icon}</span>
+            <h2 class="card-title">${card.title}</h2>
+            <p class="card-description">${card.description}</p>
+        </div>
+    `;
+    selectedContainer.classList.add('active');
+}
+
+function removeCardFromFan() {
+    const collectionCards = getCollectionCards(fanViewCollection);
+    const card = collectionCards[fanSelectedCard];
+
+    if (!card) return;
+
+    // Remove card from collection
+    toggleCardInCollection(card, fanViewCollection);
+
+    // Refresh the fan view
+    const updatedCards = getCollectionCards(fanViewCollection);
+    document.getElementById('fan-title').textContent = `${collections[fanViewCollection]?.name || 'Samling'} (${updatedCards.length} kort)`;
+
+    renderFanCards(updatedCards);
+
+    // Clear selected card
+    fanSelectedCard = null;
+    document.getElementById('fan-selected-card').innerHTML = '';
+    document.getElementById('fan-selected-card').classList.remove('active');
+}
+
 // Close menu when clicking outside
 document.addEventListener('click', closeMenuOnClickOutside);
 

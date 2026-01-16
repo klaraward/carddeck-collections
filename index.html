@@ -75,6 +75,7 @@
         <div class="modal">
             <h3 id="manage-modal-title"></h3>
             <div class="modal-buttons" style="flex-direction: column; align-items: stretch;">
+                <button class="modal-btn secondary" onclick="openFanView(editingCollection)" style="text-align: left;" id="btn-view-all">Visa alla kort</button>
                 <button class="modal-btn secondary" onclick="editCollectionName()" style="text-align: left;" id="btn-rename"></button>
                 <button class="modal-btn danger" onclick="showDeleteModal()" style="text-align: left;" id="btn-delete-collection"></button>
             </div>
@@ -82,6 +83,14 @@
                 <button class="modal-btn secondary" onclick="closeManageModal()" style="width: 100%;" id="btn-close"></button>
             </div>
         </div>
+    </div>
+
+    <!-- Fan view overlay for viewing all cards in a collection -->
+    <div class="fan-overlay" id="fan-overlay" onclick="closeFanViewOnBackground(event)">
+        <button class="fan-close-btn" onclick="closeFanView()">✕</button>
+        <h2 class="fan-title" id="fan-title"></h2>
+        <div class="fan-container" id="fan-container"></div>
+        <div class="fan-selected-card" id="fan-selected-card"></div>
     </div>
 
     <!-- Firebase SDK -->
